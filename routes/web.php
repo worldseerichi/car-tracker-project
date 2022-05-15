@@ -15,4 +15,5 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', [MapsController::class, 'index']);
+Route::get('/g-p-s', [MapsController::class, 'index']);
 Route::get('/getData', [MapsController::class, 'getData']);

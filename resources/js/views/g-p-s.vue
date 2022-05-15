@@ -35,7 +35,7 @@ import axios from 'axios';
 var map;
 var snappedCoordinates = [];
 var lastPosition = new Map();
-var apiKey = env('API_KEY');
+var apiKey = 'AIzaSyBju62gMvZR9PcVbpIGPbcsvMEh0nruJ0Q';
 var location;
 var span;
 
@@ -61,7 +61,8 @@ export default {
 
     getRouteData() {
         axios.get('/getData').then(response => {
-            location = response.data;
+            console.log(response);
+            location = response.data[0].examplecolumn;
             span = document.getElementById("location");
             span.textContent = location;
         })
