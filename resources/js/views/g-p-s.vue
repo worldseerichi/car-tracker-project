@@ -18,7 +18,8 @@
             ></path>
           </svg>
           <!--<span class="g-p-s-text textSM"><span>Leiria, Portugal</span></span>-->
-          <span id="location" class="g-p-s-text textSM"><span>loading...</span></span>
+          <span id="location" class="g-p-s-text textSM"><span>HEEEEEEEEEEEEEEELP</span></span>
+          <div>pls work</div>
         </div>
       </div>
       <div class="g-p-s-container4" id="map"></div>
@@ -35,7 +36,7 @@ import axios from 'axios';
 var map;
 var snappedCoordinates = [];
 var lastPosition = new Map();
-var apiKey = env('API_KEY');
+var apiKey = 'AIzaSyBju62gMvZR9PcVbpIGPbcsvMEh0nruJ0Q';
 var location;
 var span;
 
@@ -62,6 +63,7 @@ export default {
     getRouteData() {
         axios.get('/getData').then(response => {
             location = response.data;
+            console.log("thx");
             span = document.getElementById("location");
             span.textContent = location;
         })
