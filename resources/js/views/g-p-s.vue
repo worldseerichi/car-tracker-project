@@ -18,8 +18,7 @@
             ></path>
           </svg>
           <!--<span class="g-p-s-text textSM"><span>Leiria, Portugal</span></span>-->
-          <span id="location" class="g-p-s-text textSM"><span>HEEEEEEEEEEEEEEELP</span></span>
-          <div>pls work</div>
+          <span id="location" class="g-p-s-text textSM"><span>loading...</span></span>
         </div>
       </div>
       <div class="g-p-s-container4" id="map"></div>
@@ -62,8 +61,8 @@ export default {
 
     getRouteData() {
         axios.get('/getData').then(response => {
-            location = response.data;
-            console.log("thx");
+            console.log(response);
+            location = response.data[0].examplecolumn;
             span = document.getElementById("location");
             span.textContent = location;
         })

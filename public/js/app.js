@@ -19803,8 +19803,8 @@ var span;
       var _this = this;
 
       axios__WEBPACK_IMPORTED_MODULE_2___default().get('/getData').then(function (response) {
-        location = response.data;
-        console.log("thx");
+        console.log(response);
+        location = response.data[0].examplecolumn;
         span = document.getElementById("location");
         span.textContent = location;
       });
@@ -20198,7 +20198,7 @@ var _hoisted_4 = /*#__PURE__*/_withScopeId(function () {
   );
 });
 
-var _hoisted_5 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createStaticVNode)("<div class=\"g-p-s-container1\" data-v-641b2281><div class=\"g-p-s-container2\" data-v-641b2281><div class=\"g-p-s-container3\" data-v-641b2281><svg viewBox=\"0 0 1024 1024\" class=\"g-p-s-icon\" data-v-641b2281><path d=\"M512 490q44 0 75-31t31-75-31-75-75-31-75 31-31 75 31 75 75 31zM512 86q124 0 211 87t87 211q0 62-31 142t-75 150-87 131-73 97l-32 34q-12-14-32-37t-72-92-91-134-71-147-32-144q0-124 87-211t211-87z\" data-v-641b2281></path></svg><!--&lt;span class=&quot;g-p-s-text textSM&quot;&gt;&lt;span&gt;Leiria, Portugal&lt;/span&gt;&lt;/span&gt;--><span id=\"location\" class=\"g-p-s-text textSM\" data-v-641b2281><span data-v-641b2281>HEEEEEEEEEEEEEEELP</span></span><div data-v-641b2281>pls work</div></div></div><div class=\"g-p-s-container4\" id=\"map\" data-v-641b2281></div></div>", 1);
+var _hoisted_5 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createStaticVNode)("<div class=\"g-p-s-container1\" data-v-641b2281><div class=\"g-p-s-container2\" data-v-641b2281><div class=\"g-p-s-container3\" data-v-641b2281><svg viewBox=\"0 0 1024 1024\" class=\"g-p-s-icon\" data-v-641b2281><path d=\"M512 490q44 0 75-31t31-75-31-75-75-31-75 31-31 75 31 75 75 31zM512 86q124 0 211 87t87 211q0 62-31 142t-75 150-87 131-73 97l-32 34q-12-14-32-37t-72-92-91-134-71-147-32-144q0-124 87-211t211-87z\" data-v-641b2281></path></svg><!--&lt;span class=&quot;g-p-s-text textSM&quot;&gt;&lt;span&gt;Leiria, Portugal&lt;/span&gt;&lt;/span&gt;--><span id=\"location\" class=\"g-p-s-text textSM\" data-v-641b2281><span data-v-641b2281>loading...</span></span></div></div><div class=\"g-p-s-container4\" id=\"map\" data-v-641b2281></div></div>", 1);
 
 function render(_ctx, _cache, $props, $setup, $data, $options) {
   var _component_app_header = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("app-header");
