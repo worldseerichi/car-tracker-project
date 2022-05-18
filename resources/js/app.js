@@ -4,7 +4,6 @@ import * as Meta from 'vue-meta'
 
 //Vue.use(VueRouter)
 
-import Whodis from './views/whodis'
 import GPS from './views/g-p-s'
 import Home from './views/Home'
 import App from './views/App'
@@ -13,11 +12,6 @@ import './style.css'
 const router = VueRouter.createRouter({
     history: VueRouter.createWebHistory(),
     routes: [
-        {
-          name: 'who dis',
-          path: '/whodis',
-          component: Whodis,
-        },
         {
           name: 'GPS',
           path: '/g-p-s',
