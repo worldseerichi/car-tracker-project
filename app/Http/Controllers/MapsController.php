@@ -17,8 +17,8 @@ class MapsController extends Controller
     public function getData()
     {
         //DB queries and etc go here
-        $location = DB::select('select * from testtable');
-        //$location = "Leiria";
+        //$location = DB::select('select * from testtable');
+        $location = "Leiria";
         return $location;
     }
 }

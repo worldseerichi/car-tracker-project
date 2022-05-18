@@ -6,7 +6,7 @@ import * as Meta from 'vue-meta'
 
 import Whodis from './views/whodis'
 import GPS from './views/g-p-s'
-import Home from './views/home'
+import Home from './views/Home'
 import App from './views/App'
 import './style.css'
 

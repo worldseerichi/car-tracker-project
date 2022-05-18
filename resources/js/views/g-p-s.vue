@@ -61,8 +61,9 @@ export default {
 
     getRouteData() {
         axios.get('/getData').then(response => {
-            console.log(response);
-            location = response.data[0].examplecolumn;
+            //console.log(response);
+            //location = response.data[0].examplecolumn;
+            location = response.data;
             span = document.getElementById("location");
             span.textContent = location;
         });
