@@ -56,17 +56,11 @@ export default {
   },
   methods: {
     initMap() {
+        span = document.getElementById("location");
         this.getRouteData();
         },
 
     getRouteData() {
-        axios.get('/getData').then(response => {
-            //console.log(response);
-            //location = response.data[0].examplecolumn;
-            location = response.data;
-            span = document.getElementById("location");
-            span.textContent = location;
-        });
         var path =  [[39.73988390271169, -8.803012287344243],
                      [39.74084526081704, -8.802359366435601],
                      [39.74004168723268, -8.804373422691963],
@@ -85,29 +79,54 @@ export default {
                      [39.73263077411064, -8.821333051586823],
                      [39.733978469984486, -8.82185651555642],
                      [39.735069293462466, -8.820662083889975]];
-        axios.get('https://roads.googleapis.com/v1/snapToRoads', { params: {
+        axios.get('/getData').then(response => {
+            //console.log(response);
+            //response will be path coordinates of current logged in user
+
+            //snapToRoads takes up to 100 GPS points, current position plus 99 previous positions (slice)
+            axios.get('https://roads.googleapis.com/v1/snapToRoads', { params: {
             interpolate: true,
             key: apiKey,
-            path: path.join('|')
+            path: path.slice(-100).join('|')
             }
-        }).then(response => {
-            //console.log(response.data.snappedPoints);
-            this.processRoadsResponse(response.data);
+            }).then(response => {
+                //console.log(response.data.snappedPoints);
+                this.processRoadsResponse(response.data);
 
-            var mapOptions =
-                {
-                    zoom : 16,
-                    center : {
-                        lat: lastPosition.get('lat'),
-                        lng: lastPosition.get('lng')
-                    }
-                };
-            map = new google.maps.Map(document.getElementById("map"), mapOptions);
+                var mapOptions =
+                    {
+                        zoom : 16,
+                        center : {
+                            lat: lastPosition.get('lat'),
+                            lng: lastPosition.get('lng')
+                        }
+                    };
+                map = new google.maps.Map(document.getElementById("map"), mapOptions);
 
-            this.drawRoute();
+                this.drawRoute();
+
+                //get street name
+                const geocoder = new google.maps.Geocoder();
+                geocoder
+                    .geocode({ location: {lat: lastPosition.get('lat'), lng: lastPosition.get('lng') } })
+                    .then((response) => {
+                        console.log(response);
+                        console.log(response.results[0]);
+                        console.log(response.results[0].formatted_address)
+                        if (response.results[0]) {
+                            span.textContent = response.results[0].formatted_address;
+                        } else {
+                            span.textContent = "Unrecognized location";
+                        }
+                    })
+                    .catch((e) => console.log("Geocoder failed due to: " + e));
             })
+            .catch(e => {
+                console.log("snapToRoads failed due to: " + e);
+            });
+        })
         .catch(e => {
-            console.log(e);
+            console.log("getData failed due to: " + e);
         });
     },
 
