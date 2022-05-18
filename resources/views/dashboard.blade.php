@@ -1,7 +1,7 @@
 <html lang="en">
   <head>
     <title>Vehicle Tracker</title>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?libraries=drawing,places&key=AIzaSyBju62gMvZR9PcVbpIGPbcsvMEh0nruJ0Q&callback=initMap"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?libraries=drawing,places&key={{$apiKey}}&callback=initMap"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta charset="utf-8" />
     <meta property="twitter:card" content="summary_large_image" />

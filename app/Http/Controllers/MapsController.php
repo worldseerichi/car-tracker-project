@@ -9,7 +9,9 @@ class MapsController extends Controller
 {
     public function index()
     {
-        return view('dashboard');
+        $apiKey = config('services.google.key');
+
+        return view('dashboard', ['apiKey' => $apiKey]);
     }
 
     public function getData()

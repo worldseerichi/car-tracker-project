@@ -35,7 +35,7 @@ import axios from 'axios';
 var map;
 var snappedCoordinates = [];
 var lastPosition = new Map();
-var apiKey = 'AIzaSyBju62gMvZR9PcVbpIGPbcsvMEh0nruJ0Q';
+var apiKey = process.env.MIX_API_KEY;
 var location;
 var span;
 
@@ -65,7 +65,7 @@ export default {
             location = response.data[0].examplecolumn;
             span = document.getElementById("location");
             span.textContent = location;
-        })
+        });
         var path =  [[39.73988390271169, -8.803012287344243],
                      [39.74084526081704, -8.802359366435601],
                      [39.74004168723268, -8.804373422691963],

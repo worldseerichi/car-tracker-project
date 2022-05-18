@@ -19779,7 +19779,7 @@ __webpack_require__.r(__webpack_exports__);
 var map;
 var snappedCoordinates = [];
 var lastPosition = new Map();
-var apiKey = 'AIzaSyBju62gMvZR9PcVbpIGPbcsvMEh0nruJ0Q';
+var apiKey = "AIzaSyCe2khuJCVmXY3eehKUiVJH63NhSY8C36U";
 var location;
 var span;
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
@@ -19797,6 +19797,7 @@ var span;
   },
   methods: {
     initMap: function initMap() {
+      console.log(apiKey);
       this.getRouteData();
     },
     getRouteData: function getRouteData() {
