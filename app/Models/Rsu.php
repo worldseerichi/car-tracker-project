@@ -8,4 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class Rsu extends Model
 {
     use HasFactory;
+    protected $fillable = ['range','description','user_id'];
+
 }
