@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MapsController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,9 +15,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', [MapsController::class, 'index']);
+Route::get('/', [MapsController::class, 'index'])->name('dashboard');
 Route::get('/g-p-s', [MapsController::class, 'index']);
+Route::get('/login', [MapsController::class, 'index'])->name('login');
+Route::get('/register-accounts', [MapsController::class, 'index']);
+
 Route::get('/getData', [MapsController::class, 'getData']);
+
 Route::resource('accounts','AccountController');
 Route::resource('rsus','RsuController');
 Route::resource('trackingdata','TrackingDataController');
+
+Route::post('login-request', [AuthController::class, 'loginRequest'])->name('login-request');
+Route::post('registration-request', [AuthController::class, 'registrationRequest'])->name('register.request');
+Route::get('signout', [AuthController::class, 'signOut'])->name('signout');
