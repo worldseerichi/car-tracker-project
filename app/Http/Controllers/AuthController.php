@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
-use App\Models\Account;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
@@ -20,10 +20,9 @@ class AuthController extends Controller
         ]);
 
         $credentials = $request->only('username', 'password');
-        /*if (Auth::attempt($credentials)) { //Auth is not working properly
-            $redir = '/'
-            return $redir;
-        }*/
+        if (Auth::attempt($credentials)) { //Auth is not working properly
+            $redir = '/';
+        }
 
         return $redir;
     }
@@ -36,17 +35,21 @@ class AuthController extends Controller
             'password' => 'required|min:4',
         ]);
 
-        $data = $request->all();
+        $data = $request->only('username', 'password');
         $check = $this->create($data);
 
-        return redirect("dashboard")->withSuccess('have signed-in');
+        return $check;
     }
 
+    public function checkAuth()
+    {
+      return Auth::user();
+    }
 
     public function create(array $data)
     {
-      return Account::create([
-        'name' => $data['username'],
+      return User::create([
+        'username' => $data['username'],
         'password' => Hash::make($data['password'])
       ]);
     }

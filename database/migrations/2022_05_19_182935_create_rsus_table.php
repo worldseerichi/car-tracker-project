@@ -15,9 +15,9 @@ return new class extends Migration
     {
         Schema::create('rsus', function (Blueprint $table) {
             $table->id();
-            $table->integer('range');
-            $table->string('description');
-            $table->foreignId('user_id')->constrained('accounts');
+            $table->integer('range')->default(300);
+            $table->string('description')->nullable();
+            $table->foreignId('user_id')->constrained('users');
             $table->timestamps();
 
         });

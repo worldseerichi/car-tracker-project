@@ -23,7 +23,7 @@
           type="text"
           placeholder="username"
           id="username"
-          name="email"
+          name="username"
           v-model="username"
           required
           autofocus

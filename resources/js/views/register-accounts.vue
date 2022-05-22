@@ -9,7 +9,7 @@
       />
       <div class="register-accounts-bg"></div>
     </div>
-    <div class="register-accounts-container1">
+    <form @submit.prevent="register()" class="register-accounts-container1">
       <div class="register-accounts-container2">
         <div class="register-accounts-container3"></div>
       </div>
@@ -23,19 +23,28 @@
         <input
           type="text"
           placeholder="username"
+          id="username"
+          name="username"
+          v-model="username"
+          required
+          autofocus
           class="register-accounts-textinput input"
         />
         <label class="register-accounts-text5">Password</label>
         <input
           type="password"
           placeholder="password"
+          id="password"
+          name="password"
+          v-model="password"
+          required
           class="register-accounts-textinput1 input"
         />
-        <button class="register-accounts-button button">
+        <button type="submit" class="register-accounts-button button">
           <span class="register-accounts-text6"><span>Register</span></span>
         </button>
       </div>
-    </div>
+    </form>
     <app-footer></app-footer>
   </div>
 </template>
@@ -43,12 +52,19 @@
 <script>
 import AppHeader from '../components/header'
 import AppFooter from '../components/footer'
+import axios from 'axios';
 
 export default {
   name: 'RegisterAccounts',
   components: {
     AppHeader,
     AppFooter,
+  },
+  data() {
+    return {
+      username: '',
+      password: ''
+    }
   },
   metaInfo: {
     title: 'RegisterAccounts - Car_Tracker_V1',
@@ -59,6 +75,18 @@ export default {
       },
     ],
   },
+  methods: {
+        register: function () {
+            axios.post('registration-request', { username: this.username, password: this.password })
+                .then(function (response) {
+                    console.log(response);
+                    //implement something to tell the user an account was created
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        }
+  }
 }
 </script>
 

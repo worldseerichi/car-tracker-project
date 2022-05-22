@@ -1,10 +1,10 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\User;
 use Illuminate\Http\Request;
 
-class AccountController extends Controller
+class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -13,8 +13,8 @@ class AccountController extends Controller
      */
     public function index()
     {
-        $accounts = Account::all();
-        return response()->json($accounts)
+        $users = User::all();
+        return response()->json($users);
     }
 
     /**
@@ -24,7 +24,7 @@ class AccountController extends Controller
      */
     public function create()
     {
-        
+        //
     }
 
     /**
@@ -35,14 +35,12 @@ class AccountController extends Controller
      */
     public function store(Request $request)
     {
-        $account = new Account([
-            'id' => $request->get('id'),
+        $user = new User([
             'username' => $request->get('username'),
-            'password' => $request->get('password'),
-            'is_admin' => $request->get('is_admin')
+            'password' => $request->get('password')
         ]);
-        $account->save();
-        return response()->json('Account Successfully Added')
+        $user->save();
+        return response()->json('User Successfully Added');
     }
 
     /**
@@ -64,8 +62,8 @@ class AccountController extends Controller
      */
     public function edit($id)
     {
-        $account = Account::find($id);
-        return response()->json($account)
+        $user = User::find($id);
+        return response()->json($user);
     }
 
     /**
@@ -77,11 +75,10 @@ class AccountController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $account = Account::find($id);
-        $account->id = $request->get('id')
-        $account->username = $request->get('username')
-        $account->password = $request->get('password')
-        $account->is_admin = $request->get('is_admin')
+        $user = User::find($id);
+        $user->username = $request->get('username');
+        $user->password = $request->get('password');
+        //$user->is_admin = $request->get('is_admin');
     }
 
     /**
@@ -92,9 +89,9 @@ class AccountController extends Controller
      */
     public function destroy($id)
     {
-        $account = Account::find($id);
-        $account->delete();
+        $user = User::find($id);
+        $user->delete();
 
-        return response()->json("Account Successfully Deleted")
+        return response()->json("User Successfully Deleted");
     }
 }

@@ -22,10 +22,13 @@ Route::get('/register-accounts', [MapsController::class, 'index']);
 
 Route::get('/getData', [MapsController::class, 'getData']);
 
-Route::resource('accounts','AccountController');
+Route::resource('users','UserController');
 Route::resource('rsus','RsuController');
 Route::resource('trackingdata','TrackingDataController');
 
 Route::post('login-request', [AuthController::class, 'loginRequest'])->name('login-request');
-Route::post('registration-request', [AuthController::class, 'registrationRequest'])->name('register.request');
+Route::post('registration-request', [AuthController::class, 'registrationRequest'])->name('registration-request');
 Route::get('signout', [AuthController::class, 'signOut'])->name('signout');
+
+//routes for middleware checking
+Route::get('loginCheck', [AuthController::class, 'checkAuth'])->name('loginCheck');

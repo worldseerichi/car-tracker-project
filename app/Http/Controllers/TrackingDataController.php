@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\TrackingData;
 use Illuminate\Http\Request;
 
 class TrackingDataController extends Controller
@@ -14,7 +14,7 @@ class TrackingDataController extends Controller
     public function index()
     {
         $alldata = TrackingData::all();
-        return response()->json($alldata)
+        return response()->json($alldata);
     }
 
     /**
@@ -36,7 +36,6 @@ class TrackingDataController extends Controller
     public function store(Request $request)
     {
         $newdata = new TrackingData([
-            'id' => $request->get('id'),
             'latitude' => $request->get('latitude'),
             'longitude' => $request->get('longitude'),
             'altitude' => $request->get('altitude'),
@@ -51,7 +50,7 @@ class TrackingDataController extends Controller
             'rsu_id' => $request->get('rsu_id'),
         ]);
         $newdata->save();
-        return response()->json('Tracking Data Successfully Added')
+        return response()->json('Tracking Data Successfully Added');
     }
 
     /**
@@ -73,8 +72,8 @@ class TrackingDataController extends Controller
      */
     public function edit($id)
     {
-        $newdata = Account::find($id);
-        return response()->json($newdata)
+        $newdata = TrackingData::find($id);
+        return response()->json($newdata);
     }
 
     /**
@@ -87,20 +86,19 @@ class TrackingDataController extends Controller
     public function update(Request $request, $id)
     {
         $newdata = TrackingData::find($id);
-        $newdata->id = $request->get('id')
-        $newdata->latitude = $request->get('latitude')
-        $newdata->longitude = $request->get('longitude')
-        $newdata->altitude = $request->get('altitude')
-        $newdata->bearing = $request->get('bearing')
-        $newdata->velocity = $request->get('velocity')
-        $newdata->gir_x = $request->get('gir_x')
-        $newdata->gir_y = $request->get('gir_y')
-        $newdata->gir_z = $request->get('gir_z')
-        $newdata->acel_x = $request->get('acel_x')
-        $newdata->acel_y = $request->get('acel_y')
-        $newdata->acel_z = $request->get('acel_z')
-        $newdata->rsu_id = $request->get('rsu_id')
-
+        $newdata->latitude = $request->get('latitude');
+        $newdata->longitude = $request->get('longitude');
+        $newdata->altitude = $request->get('altitude');
+        $newdata->bearing = $request->get('bearing');
+        $newdata->velocity = $request->get('velocity');
+        $newdata->gir_x = $request->get('gir_x');
+        $newdata->gir_y = $request->get('gir_y');
+        $newdata->gir_z = $request->get('gir_z');
+        $newdata->acel_x = $request->get('acel_x');
+        $newdata->acel_y = $request->get('acel_y');
+        $newdata->acel_z = $request->get('acel_z');
+        //$newdata->rsu_id = $request->get('rsu_id');
+;
     }
 
     /**
@@ -114,6 +112,6 @@ class TrackingDataController extends Controller
         $newdata = TrackingData::find($id);
         $newdata->delete();
 
-        return response()->json("Tracking Data Successfully Deleted")
+        return response()->json("Tracking Data Successfully Deleted");
     }
 }
