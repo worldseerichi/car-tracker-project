@@ -55,20 +55,18 @@
         </button>
       </div>
     </form>
-    <app-footer></app-footer>
+
   </div>
 </template>
 
 <script>
 import AppHeader from '../components/header'
-import AppFooter from '../components/footer'
 import axios from 'axios';
 
 export default {
   name: 'Login',
   components: {
     AppHeader,
-    AppFooter,
   },
 
   data() {

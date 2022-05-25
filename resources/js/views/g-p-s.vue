@@ -1,7 +1,7 @@
 <template>
   <div class="g-p-s-container">
     <div class="g-p-s-image">
-      <app-header></app-header>
+      <app-header rootClassName="header-root-class-name4"></app-header>
       <img
         alt="image"
         src="../playground_assets/gray-vector.svg"
@@ -9,27 +9,13 @@
       />
       <div class="g-p-s-bg"></div>
     </div>
-    <div class="g-p-s-container1">
-      <div class="g-p-s-container2">
-        <div class="g-p-s-container3">
-          <svg viewBox="0 0 1024 1024" class="g-p-s-icon">
-            <path
-              d="M512 490q44 0 75-31t31-75-31-75-75-31-75 31-31 75 31 75 75 31zM512 86q124 0 211 87t87 211q0 62-31 142t-75 150-87 131-73 97l-32 34q-12-14-32-37t-72-92-91-134-71-147-32-144q0-124 87-211t211-87z"
-            ></path>
-          </svg>
-          <!--<span class="g-p-s-text textSM"><span>Leiria, Portugal</span></span>-->
-          <span id="location" class="g-p-s-text textSM"><span>loading...</span></span>
-        </div>
-      </div>
-      <div class="g-p-s-container4" id="map"></div>
-    </div>
-    <app-footer></app-footer>
+    <div class="g-p-s-container1"><div class="g-p-s-container2" id="map"></div></div>
   </div>
 </template>
 
 <script>
 import AppHeader from '../components/header'
-import AppFooter from '../components/footer'
+
 import axios from 'axios';
 
 var map;
@@ -42,7 +28,7 @@ export default {
   name: 'GPS',
   components: {
     AppHeader,
-    AppFooter,
+
   },
   metaInfo: {
     title: 'GPS - Vehicle Tracker',
@@ -106,7 +92,7 @@ export default {
                 this.drawRoute(); //draws the current user's driven path from the previous 100 coordinates
 
                 //get street name
-                const geocoder = new google.maps.Geocoder();
+                /*const geocoder = new google.maps.Geocoder();
                 geocoder
                     .geocode({ location: {lat: lastPosition.get('lat'), lng: lastPosition.get('lng') } })
                     .then((response) => {
@@ -116,7 +102,7 @@ export default {
                             span.textContent = "Unrecognized location";
                         }
                     })
-                    .catch((e) => console.log("Geocoder failed due to: " + e));
+                    .catch((e) => console.log("Geocoder failed due to: " + e)); */
             })
             .catch(e => {
                 console.log("snapToRoads failed due to: " + e);
@@ -225,7 +211,7 @@ export default {
 }
 .g-p-s-container1 {
   width: 100%;
-  height: 623px;
+  height: 100%;
   display: flex;
   z-index: 100;
   box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1),0 10px 10px -5px rgba(0,0,0,0.04);
@@ -238,38 +224,13 @@ export default {
 }
 .g-p-s-container2 {
   width: 100%;
-  height: 35px;
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-}
-.g-p-s-container3 {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  flex-direction: row;
-  justify-content: center;
-}
-.g-p-s-icon {
-  fill: var(--dl-color-secondary-500);
-  width: 18px;
-  height: 18px;
-}
-.g-p-s-text {
-  color: var(--dl-color-secondary-500);
-  margin-top: var(--dl-space-space-halfunit);
-  font-weight: 600;
-  margin-left: var(--dl-space-space-halfunit);
-  margin-bottom: var(--dl-space-space-halfunit);
-}
-.g-p-s-container4 {
-  width: 100%;
   border: 2px dashed rgba(120, 120, 120, 0.4);
-  height: 549px;
+  height: 642px;
   display: flex;
   margin-top: 3px;
   align-items: center;
-  margin-bottom: var(--dl-space-space-tripleunit);
+  margin-bottom: 37px;
   flex-direction: column;
 }
 </style>
+
