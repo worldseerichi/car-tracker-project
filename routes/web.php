@@ -31,4 +31,4 @@ Route::post('registration-request', [AuthController::class, 'registrationRequest
 Route::get('signout', [AuthController::class, 'signOut'])->name('signout');
 
 //routes for middleware checking
-Route::get('loginCheck', [AuthController::class, 'checkAuth'])->name('loginCheck');
+Route::get('loginCheck', [AuthController::class, 'currentUser'])->name('loginCheck');

@@ -20,7 +20,7 @@ class AuthController extends Controller
         ]);
 
         $credentials = $request->only('username', 'password');
-        if (Auth::attempt($credentials)) { //Auth is not working properly
+        if (Auth::attempt($credentials)) {
             $redir = '/';
         }
 
@@ -41,7 +41,7 @@ class AuthController extends Controller
         return $check;
     }
 
-    public function checkAuth()
+    public function currentUser()
     {
       return Auth::user();
     }
