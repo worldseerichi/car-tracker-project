@@ -11,9 +11,11 @@ import Login from './views/login'
 import RegisterAccounts from './views/register-accounts'
 import auth from './middleware/auth'
 import './style.css'
+import store from "./store"
 
 const router = VueRouter.createRouter({
     history: VueRouter.createWebHistory(),
+    store,
     routes: [
         {
             name: 'GPS',
