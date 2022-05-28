@@ -9,7 +9,7 @@
     </div>
     <div data-type="MobileMenu" class="header-mobile-menu">
       <div class="header-top">
-        <router-link to="/" class="header-navlink">
+        <router-link to="/g-p-s" class="header-navlink">
           <h1 class="header-heading textSM">{{ heading11 }}</h1>
         </router-link>
         <div data-type="CloseMobileMenu" class="header-close-menu">

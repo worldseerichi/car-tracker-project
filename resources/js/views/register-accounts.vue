@@ -82,7 +82,7 @@ export default {
                     //implement something to tell the user an account was created
                 })
                 .catch(function (error) {
-                    console.log(error);
+                    console.log('erro no registo');
                 });
         }
   }
