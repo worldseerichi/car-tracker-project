@@ -46,7 +46,7 @@ export default {
         },
 
     getRouteData() {
-        var path =  [[39.73988390271169, -8.803012287344243],
+        var path =  []/*[[39.73988390271169, -8.803012287344243],
                      [39.74084526081704, -8.802359366435601],
                      [39.74004168723268, -8.804373422691963],
                      [39.73980177796016, -8.805855464918467],
@@ -63,50 +63,55 @@ export default {
                      [39.73387345567432, -8.823229660163358],
                      [39.73263077411064, -8.821333051586823],
                      [39.733978469984486, -8.82185651555642],
-                     [39.735069293462466, -8.820662083889975]];
+                     [39.735069293462466, -8.820662083889975]]; */
         axios.get('/getData').then(response => {
             //console.log(response);
             //response will be path coordinates of current logged in user
+            if(response.data == 'No data found'){
+                console.log(response.data);
+            }else{
+                path = response.data.map(function (data) { return [data.latitude, data.longitude]; });
+                //console.log(path);
+                //snapToRoads takes up to 100 GPS points, current position plus 99 previous positions (slice)
+                axios.get('https://roads.googleapis.com/v1/snapToRoads', { params: {
+                interpolate: true,
+                key: apiKey,
+                path: path.slice(-100).join('|')
+                }
+                }).then(response => {
+                    //console.log(response.data.snappedPoints);
+                    //response is a set of coordinates snapped to the nearest road for accuracy purposes
+                    this.processRoadsResponse(response.data);
 
-            //snapToRoads takes up to 100 GPS points, current position plus 99 previous positions (slice)
-            axios.get('https://roads.googleapis.com/v1/snapToRoads', { params: {
-            interpolate: true,
-            key: apiKey,
-            path: path.slice(-100).join('|')
-            }
-            }).then(response => {
-                //console.log(response.data.snappedPoints);
-                //response is a set of coordinates snapped to the nearest road for accuracy purposes
-                this.processRoadsResponse(response.data);
+                    var mapOptions =
+                        {
+                            zoom : 16,
+                            center : {
+                                lat: lastPosition.get('lat'),
+                                lng: lastPosition.get('lng')
+                            }
+                        };
+                    map = new google.maps.Map(document.getElementById("map"), mapOptions); //creates and initializes the map
 
-                var mapOptions =
-                    {
-                        zoom : 16,
-                        center : {
-                            lat: lastPosition.get('lat'),
-                            lng: lastPosition.get('lng')
-                        }
-                    };
-                map = new google.maps.Map(document.getElementById("map"), mapOptions); //creates and initializes the map
+                    this.drawRoute(); //draws the current user's driven path from the previous 100 coordinates
 
-                this.drawRoute(); //draws the current user's driven path from the previous 100 coordinates
-
-                //get street name
-                /*const geocoder = new google.maps.Geocoder();
-                geocoder
-                    .geocode({ location: {lat: lastPosition.get('lat'), lng: lastPosition.get('lng') } })
-                    .then((response) => {
-                        if (response.results[0]) {
-                            span.textContent = response.results[0].formatted_address;
-                        } else {
-                            span.textContent = "Unrecognized location";
-                        }
-                    })
-                    .catch((e) => console.log("Geocoder failed due to: " + e)); */
-            })
-            .catch(e => {
-                console.log("snapToRoads failed due to: " + e);
-            });
+                    //get street name
+                    /*const geocoder = new google.maps.Geocoder();
+                    geocoder
+                        .geocode({ location: {lat: lastPosition.get('lat'), lng: lastPosition.get('lng') } })
+                        .then((response) => {
+                            if (response.results[0]) {
+                                span.textContent = response.results[0].formatted_address;
+                            } else {
+                                span.textContent = "Unrecognized location";
+                            }
+                        })
+                        .catch((e) => console.log("Geocoder failed due to: " + e)); */
+                })
+                .catch(e => {
+                    console.log("snapToRoads failed due to: " + e);
+                });
+            };
         })
         .catch(e => {
             console.log("getData failed due to: " + e);

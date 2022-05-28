@@ -17,9 +17,9 @@ return new class extends Migration
             $table->id();
             $table->double('latitude');
             $table->double('longitude');
-            $table->double('altitude');
-            $table->double('bearing');
-            $table->double('velocity');
+            $table->double('altitude')->default(0);
+            $table->double('bearing')->default(0);
+            $table->double('velocity')->default(0);
             $table->double('gir_x')->default(0);
             $table->double('gir_y')->default(0);
             $table->double('gir_z')->default(0);
