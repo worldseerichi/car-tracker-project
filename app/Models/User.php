@@ -30,4 +30,9 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
     ];
+
+    public function rsu() {
+        return $this->hasOne('App\Models\Rsu');        
+    }
+
 }

@@ -24,7 +24,7 @@
           placeholder="username"
           id="username"
           name="username"
-          v-model="username"
+          v-model="user.username"
           required
           autofocus
           class="login-textinput input"
@@ -35,7 +35,7 @@
           placeholder="password"
           id="password"
           name="password"
-          v-model="password"
+          v-model="user.password"
           required
           class="login-textinput1 input"
         />
@@ -52,7 +52,8 @@
             <br />
             <span></span>
           </span>
-        </button>
+        </button>~
+       <div>{{$store.getters.getKey}}</div>
       </div>
     </form>
 
@@ -71,9 +72,12 @@ export default {
 
   data() {
     return {
+      user:{
+        username: '',
+        password: ''
+      },
       rawxe5q: ' ',
-      username: '',
-      password: ''
+      
     }
   },
 
@@ -87,7 +91,12 @@ export default {
     ],
   },
   methods: {
-        login: function () {
+      login(){
+        this.$store.commit('storeLogin', this.user)
+        console.log(this.$store.getters.getKey)
+      }
+
+     /*   login: function () {
             let self = this;
             axios.post('login-request', { username: this.username, password: this.password })
                 .then(function (response) {
@@ -101,7 +110,27 @@ export default {
                 .catch(function (error) {
                     console.log(error);
                 });
-        }
+        }*/
+      /*login(){
+        let self = this;
+        axios.get('/sanctum/csrf-cookie').then(response => {
+          axios.post('login-request',this.formData).then(response => {
+            if (response.data=='/'){
+              //console.log(response);
+              axios.get('loginCheck').then(response => {
+                console.log(response)
+              })
+             // self.$router.push('/')
+            }else{
+              self.$router.push('login')
+            }
+          })
+          .catch(function (error) {
+                    console.log(error);
+                });
+          
+        })
+      }*/
   }
 }
 </script>

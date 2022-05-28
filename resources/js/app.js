@@ -1,8 +1,12 @@
 import * as Vue from 'vue'
+import * as Vuex from "vuex"
 import * as VueRouter from 'vue-router'
 import * as Meta from 'vue-meta'
 
+import { createApp } from 'vue'
+import { createStore } from 'vuex'
 //Vue.use(VueRouter)
+
 
 import GPS from './views/g-p-s'
 import Home from './views/Home'
@@ -13,9 +17,10 @@ import auth from './middleware/auth'
 import './style.css'
 import store from "./store"
 
+window.Vue = require('vue').default;
 const router = VueRouter.createRouter({
     history: VueRouter.createWebHistory(),
-    store,
+    //store,
     routes: [
         {
             name: 'GPS',
@@ -78,5 +83,9 @@ router.beforeEach((to, from, next) => {
 
     return next();
 });
-
-Vue.createApp(App).use(router).use(Meta).mount('#app');
+const app = createApp(App)
+app.use(router)
+app.use(Meta)
+app.use(Vuex)
+app.use(store)
+app.mount('#app');
