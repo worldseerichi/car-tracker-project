@@ -41,9 +41,9 @@ class AuthController extends Controller
         return $check;
     }
 
-    public function currentUser()
+    public function currentUser(Request $request)
     {
-      return Auth::user();
+      return $request->user();
     }
 
     public function create(array $data)

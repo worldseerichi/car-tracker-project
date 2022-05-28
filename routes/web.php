@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MapsController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,3 +33,9 @@ Route::get('signout', [AuthController::class, 'signOut'])->name('signout');
 
 //routes for middleware checking
 Route::get('loginCheck', [AuthController::class, 'currentUser'])->name('loginCheck');
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+
