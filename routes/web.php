@@ -23,6 +23,7 @@ Route::get('/login', [MapsController::class, 'index'])->name('login');
 Route::get('/register-accounts', [MapsController::class, 'index']);
 
 Route::get('/getData', [MapsController::class, 'getData']);
+Route::get('/getAdjacentData', [MapsController::class, 'getAdjacentData']);
 
 Route::resource('users','UserController');
 Route::resource('rsus','RsuController');

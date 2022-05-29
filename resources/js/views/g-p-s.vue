@@ -23,6 +23,33 @@ var snappedCoordinates = [];
 var lastPosition = new Map();
 var apiKey = process.env.MIX_API_KEY;
 var span;
+var otherUsersLatlng;
+var otherUsersIcon = {
+    path: "M29.395,0H17.636c-3.117,0-5.643,3.467-5.643,6.584v34.804c0,3.116,2.526,5.644,5.643,5.644h11.759 "
+        +"c3.116,0,5.644-2.527,5.644-5.644V6.584C35.037,3.467,32.511,0,29.395,0z "
+        +"M34.05,14.188v11.665l-2.729,0.351v-4.806L34.05,14.188z "
+        +"M32.618,10.773c-1.016,3.9-2.219,8.51-2.219,8.51H16.631l-2.222-8.51C14.41,10.773,23.293,7.755,32.618,10.773z "
+        +"M15.741,21.713 v4.492l-2.73-0.349V14.502L15.741,21.713z M13.011,37.938V27.579l2.73,0.343v8.196L13.011,37.938z "
+        +"M14.568,40.882l2.218-3.336 h13.771l2.219,3.336H14.568z M31.321,35.805v-7.872l2.729-0.355v10.048L31.321,35.805z",
+    fillColor: 'black',
+    fillOpacity: 1,
+    scale: .75,
+    anchor: new google.maps.Point(25,25),
+    rotation: 55
+}
+var mainIcon = {
+    path: "M29.395,0H17.636c-3.117,0-5.643,3.467-5.643,6.584v34.804c0,3.116,2.526,5.644,5.643,5.644h11.759 "
+            +"c3.116,0,5.644-2.527,5.644-5.644V6.584C35.037,3.467,32.511,0,29.395,0z "
+            +"M34.05,14.188v11.665l-2.729,0.351v-4.806L34.05,14.188z "
+            +"M32.618,10.773c-1.016,3.9-2.219,8.51-2.219,8.51H16.631l-2.222-8.51C14.41,10.773,23.293,7.755,32.618,10.773z "
+            +"M15.741,21.713 v4.492l-2.73-0.349V14.502L15.741,21.713z M13.011,37.938V27.579l2.73,0.343v8.196L13.011,37.938z "
+            +"M14.568,40.882l2.218-3.336 h13.771l2.219,3.336H14.568z M31.321,35.805v-7.872l2.729-0.355v10.048L31.321,35.805z",
+    fillColor: 'red',
+    fillOpacity: 1,
+    scale: .75,
+    anchor: new google.maps.Point(25,25),
+    rotation: 55
+}
 
 export default {
   name: 'GPS',
@@ -46,24 +73,7 @@ export default {
         },
 
     getRouteData() {
-        var path =  []/*[[39.73988390271169, -8.803012287344243],
-                     [39.74084526081704, -8.802359366435601],
-                     [39.74004168723268, -8.804373422691963],
-                     [39.73980177796016, -8.805855464918467],
-                     [39.73957817225259, -8.808845159503642],
-                     [39.74023501196083, -8.809599398558404],
-                     [39.7413180850293, -8.810380899271072],
-                     [39.740947745839435, -8.811389580421277],
-                     [39.73975985194463, -8.812580005920537],
-                     [39.73943143060917, -8.814724589267373],
-                     [39.73937552894832, -8.816905521485008],
-                     [39.73873265660185, -8.818931971002364],
-                     [39.737243698832735, -8.82156880700348],
-                     [39.73528091211661, -8.82357019623503],
-                     [39.73387345567432, -8.823229660163358],
-                     [39.73263077411064, -8.821333051586823],
-                     [39.733978469984486, -8.82185651555642],
-                     [39.735069293462466, -8.820662083889975]]; */
+        var path =  []
         axios.get('/getData').then(response => {
             //console.log(response);
             //response will be path coordinates of current logged in user
@@ -107,6 +117,28 @@ export default {
                             }
                         })
                         .catch((e) => console.log("Geocoder failed due to: " + e)); */
+                    axios.get('/getAdjacentData').then(response => {
+                        //get last data from other users
+                        //console.log(response);
+                        if (response.data == 'No data found') {
+                            console.log(response.data);
+                        }else{
+                            //console.log(response.data);
+                            var otherUsersPos = response.data.map(function (data) { return [data.latitude, data.longitude]; });
+                            otherUsersPos.forEach(pos => {
+                                otherUsersLatlng = new google.maps.LatLng(pos[0], pos[1]);
+                                new google.maps.Marker({
+                                    position: otherUsersLatlng,
+                                    map: map,
+                                    draggable: false,
+                                    icon: otherUsersIcon,
+                                });
+                            });
+                        }
+                    })
+                    .catch(e => {
+                        console.log("getAdjacentData failed due to: " + e);
+                    });
                 })
                 .catch(e => {
                     console.log("snapToRoads failed due to: " + e);
@@ -141,25 +173,12 @@ export default {
         //draws the route path
         snappedPolyline.setMap(map);
 
-        var icon = {
-            path: "M29.395,0H17.636c-3.117,0-5.643,3.467-5.643,6.584v34.804c0,3.116,2.526,5.644,5.643,5.644h11.759 "
-                  +"c3.116,0,5.644-2.527,5.644-5.644V6.584C35.037,3.467,32.511,0,29.395,0z "
-                  +"M34.05,14.188v11.665l-2.729,0.351v-4.806L34.05,14.188z "
-                  +"M32.618,10.773c-1.016,3.9-2.219,8.51-2.219,8.51H16.631l-2.222-8.51C14.41,10.773,23.293,7.755,32.618,10.773z "
-                  +"M15.741,21.713 v4.492l-2.73-0.349V14.502L15.741,21.713z M13.011,37.938V27.579l2.73,0.343v8.196L13.011,37.938z "
-                  +"M14.568,40.882l2.218-3.336 h13.771l2.219,3.336H14.568z M31.321,35.805v-7.872l2.729-0.355v10.048L31.321,35.805z",
-            fillColor: 'black',
-            fillOpacity: 1,
-            scale: .75,
-            anchor: new google.maps.Point(25,25),
-            rotation: 55
-        }
         //draws marker on the user's last position
         const marker = new google.maps.Marker({
             position: { lat: lastPosition.get('lat'), lng: lastPosition.get('lng') },
             map: map,
             draggable: false,
-            icon: icon,
+            icon: mainIcon,
         });
     },
   },

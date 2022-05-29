@@ -28,12 +28,40 @@ class MapsController extends Controller
         //$rsu = Rsu::where('user_id', Auth::id())->get(); //doesnt work, see how to query table using foreign key below
         $rsu = User::with('rsu')->find(Auth::id())->rsu; //get rsu connected to the authenticated user
 
-        $data = Rsu::with('trackingdata')->find($rsu['id'])->trackingdata;
+        $data = Rsu::with('trackingdata')->find($rsu['id'])->trackingdata->take(100);
 
         if(count($data) == 0){
             return 'No data found';
         };
 
         return $data;
+    }
+
+    public function getAdjacentData(){
+        $rsu = User::with('rsu')->find(Auth::id())->rsu;
+
+        $data = TrackingData::orderBy('id', 'DESC')->get();
+
+        if(count($data) == 0){
+            return 'No data found';
+        };
+        //var_dump($data);
+
+        $filteredData = $data->filter(function($item) use($rsu) { //removes data from authenticated user
+            return $item->rsu_id != $rsu['id'];
+        });
+        if(count($filteredData) == 0){
+            return 'No data found';
+        };
+        $uniqueRsus = [];
+        $lastCoordsRsus = $filteredData->filter(function($data) use (&$uniqueRsus) //gets last data from each user
+        {
+            $duplicate = in_array($data->rsu_id, $uniqueRsus);
+            if(!$duplicate) {
+                $uniqueRsus[] = $data->rsu_id;
+            }
+            return !$duplicate;
+        })->values();
+        return $lastCoordsRsus;
     }
 }
