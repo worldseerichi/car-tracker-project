@@ -24,6 +24,7 @@ Route::get('/register-accounts', [MapsController::class, 'index']);
 
 Route::get('/getData', [MapsController::class, 'getData']);
 Route::get('/getAdjacentData', [MapsController::class, 'getAdjacentData']);
+Route::post('/postData', [MapsController::class, 'postData']);
 
 Route::resource('users','UserController');
 Route::resource('rsus','RsuController');

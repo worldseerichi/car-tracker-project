@@ -77,7 +77,20 @@ export default {
         password: ''
       },
       rawxe5q: ' ',
-      
+      trackingdata:{
+          latitude: 39.736963323518566,
+          longitude: -8.821369281040335,
+          altitude: 0,
+          bearing: 0,
+          velocity: 0,
+          gir_x: 0,
+          gir_y: 0,
+          gir_z: 0,
+          acel_x: 0,
+          acel_y: 0,
+          acel_z: 0,
+          rsu_id: 1
+      }
     }
   },
 
@@ -94,6 +107,15 @@ export default {
       login(){
         this.$store.commit('storeLogin', this.user)
         console.log(this.$store.getters.getKey)
+      },
+      testPostData(){ //replace form submit function from login to this one for testing
+          axios.post('postData', this.trackingdata)
+            .then(function (response) {
+                console.log(response.data);
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
       }
 
      /*   login: function () {
@@ -128,7 +150,7 @@ export default {
           .catch(function (error) {
                     console.log(error);
                 });
-          
+
         })
       }*/
   }

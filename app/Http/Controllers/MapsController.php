@@ -64,4 +64,45 @@ class MapsController extends Controller
         })->values();
         return $lastCoordsRsus;
     }
+
+    public function postData(Request $request){
+        $request->validate([
+            'latitude' => 'required',
+            'longitude' => 'required',
+            'altitude' => 'required',
+            'bearing' => 'required',
+            'velocity' => 'required',
+            'gir_x' => 'required',
+            'gir_y' => 'required',
+            'gir_z' => 'required',
+            'acel_x' => 'required',
+            'acel_y' => 'required',
+            'acel_z' => 'required',
+            'rsu_id' => 'required'
+        ]);
+        Rsu::where('id', $request->get('rsu_id'))->firstOr(function () {
+            return 'RSU not found';
+        });
+        $data = $request->only('latitude', 'longitude','altitude','bearing','velocity','gir_x','gir_y','gir_z','acel_x','acel_y','acel_z','rsu_id');
+        $this->create($data);
+        return 'Data added';
+    }
+
+    public function create(array $data)
+    {
+      return TrackingData::create([
+        'latitude'  => $data['latitude'],
+        'longitude' => $data['longitude'],
+        'altitude'  => $data['altitude'],
+        'bearing'   => $data['bearing'],
+        'velocity'  => $data['velocity'],
+        'gir_x'     => $data['gir_x'],
+        'gir_y'     => $data['gir_y'],
+        'gir_z'     => $data['gir_z'],
+        'acel_x'    => $data['acel_x'],
+        'acel_y'    => $data['acel_y'],
+        'acel_z'    => $data['acel_z'],
+        'rsu_id'    => $data['rsu_id'],
+      ]);
+    }
 }
