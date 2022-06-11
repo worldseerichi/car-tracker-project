@@ -2,14 +2,9 @@
   <div class="g-p-s-container">
     <div class="g-p-s-image">
       <app-header rootClassName="header-root-class-name4"></app-header>
-      <img
-        alt="image"
-        src="../playground_assets/gray-vector.svg"
-        class="g-p-s-image1"
-      />
       <div class="g-p-s-bg"></div>
     </div>
-    <div class="g-p-s-container1"><div class="g-p-s-container2" id="map"></div></div>
+    <div class="g-p-s-container1" id="map"></div>
   </div>
 </template>
 
@@ -207,25 +202,14 @@ export default {
   align-items: center;
   flex-direction: column;
   background-size: cover;
-  background-image: url('https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1500&q=80');
-}
-.g-p-s-image1 {
-  left: auto;
-  right: auto;
-  width: 100%;
-  bottom: -1px;
-  z-index: 100;
-  position: absolute;
-  object-fit: cover;
 }
 .g-p-s-bg {
   top: auto;
-  flex: 0 0 auto;
   left: auto;
   right: 0px;
   width: 100%;
   bottom: auto;
-  height: 100%;
+  height: 269px;
   display: flex;
   opacity: 0.5;
   position: absolute;
@@ -235,26 +219,18 @@ export default {
 }
 .g-p-s-container1 {
   width: 100%;
-  height: 100%;
+  border: 2px dashed rgba(120, 120, 120, 0.4);
+  height: 725px;
   display: flex;
   z-index: 100;
   box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1),0 10px 10px -5px rgba(0,0,0,0.04);
-  margin-top: -12rem;
-  align-items: flex-start;
+  margin-top: -13.5rem;
+  align-items: center;
   border-radius: var(--dl-radius-radius-radius75);
   margin-bottom: var(--dl-space-space-tripleunit);
   flex-direction: column;
+  justify-content: center;
   background-color: var(--dl-color-gray-white);
-}
-.g-p-s-container2 {
-  width: 100%;
-  border: 2px dashed rgba(120, 120, 120, 0.4);
-  height: 642px;
-  display: flex;
-  margin-top: 3px;
-  align-items: center;
-  margin-bottom: 37px;
-  flex-direction: column;
 }
 </style>
 
