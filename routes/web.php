@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MapsController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,9 +17,28 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', [MapsController::class, 'index']);
+Route::get('/', [MapsController::class, 'index'])->name('dashboard');
 Route::get('/g-p-s', [MapsController::class, 'index']);
+Route::get('/login', [MapsController::class, 'index'])->name('login');
+Route::get('/register-accounts', [MapsController::class, 'index']);
+
 Route::get('/getData', [MapsController::class, 'getData']);
-Route::resource('accounts','AccountController');
+Route::get('/getAdjacentData', [MapsController::class, 'getAdjacentData']);
+Route::post('/postData', [MapsController::class, 'postData']);
+
+Route::resource('users','UserController');
 Route::resource('rsus','RsuController');
 Route::resource('trackingdata','TrackingDataController');
+
+Route::post('login-request', [AuthController::class, 'loginRequest'])->name('login-request');
+Route::post('registration-request', [AuthController::class, 'registrationRequest'])->name('registration-request');
+Route::get('signout', [AuthController::class, 'signOut'])->name('signout');
+
+//routes for middleware checking
+Route::get('loginCheck', [AuthController::class, 'currentUser'])->name('loginCheck');
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+

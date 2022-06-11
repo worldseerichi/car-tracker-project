@@ -30,19 +30,17 @@
         />
       </div>
     </div>
-    <app-footer></app-footer>
   </div>
 </template>
 
 <script>
 import AppHeader from '../components/header'
-import AppFooter from '../components/footer'
+
 
 export default {
   name: 'Home',
   components: {
     AppHeader,
-    AppFooter,
   },
   metaInfo: {
     title: 'Vehicle Tracker',

@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\Rsu;
 use Illuminate\Http\Request;
 
 class RsuController extends Controller
@@ -13,8 +13,8 @@ class RsuController extends Controller
      */
     public function index()
     {
-        $rsus = Account::all();
-        return response()->json($rsus)
+        $rsus = Rsu::all();
+        return response()->json($rsus);
     }
 
     /**
@@ -36,13 +36,12 @@ class RsuController extends Controller
     public function store(Request $request)
     {
         $rsu = new Rsu([
-            'id' => $request->get('id'),
             'range' => $request->get('range'),
             'description' => $request->get('description'),
             'user_id' => $request->get('user_id')
         ]);
         $rsu->save();
-        return response()->json('RSU Successfully Added')
+        return response()->json('RSU Successfully Added');
     }
 
     /**
@@ -64,8 +63,8 @@ class RsuController extends Controller
      */
     public function edit($id)
     {
-        $rsu = Account::find($id);
-        return response()->json($rsu)
+        $rsu = Rsu::find($id);
+        return response()->json($rsu);
     }
 
     /**
@@ -78,10 +77,9 @@ class RsuController extends Controller
     public function update(Request $request, $id)
     {
         $rsu = Rsu::find($id);
-        $rsu->id = $request->get('id')
-        $rsu->range = $request->get('range')
-        $rsu->description = $request->get('description')
-        $rsu->user_id = $request->get('user_id')
+        $rsu->range = $request->get('range');
+        $rsu->description = $request->get('description');
+        //$rsu->user_id = $request->get('user_id');
     }
 
     /**
@@ -95,6 +93,6 @@ class RsuController extends Controller
         $rsu = Rsu::find($id);
         $rsu->delete();
 
-        return response()->json("Rsu Successfully Deleted")
+        return response()->json("Rsu Successfully Deleted");
     }
 }
