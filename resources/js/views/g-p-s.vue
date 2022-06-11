@@ -17,8 +17,10 @@ var map;
 var snappedCoordinates = [];
 var lastPosition = new Map();
 var apiKey = process.env.MIX_API_KEY;
-var span;
-var otherUsersLatlng;
+var uniqueRsuIdArray;
+var markers = new Map();
+var rsuDataMap = new Map();
+var counter = 0;
 var otherUsersIcon = {
     path: "M29.395,0H17.636c-3.117,0-5.643,3.467-5.643,6.584v34.804c0,3.116,2.526,5.644,5.643,5.644h11.759 "
         +"c3.116,0,5.644-2.527,5.644-5.644V6.584C35.037,3.467,32.511,0,29.395,0z "
@@ -63,80 +65,59 @@ export default {
   },
   methods: {
     initMap() {
-        span = document.getElementById("location");
+        var mapOptions =
+            {
+                zoom : 1.75,
+                center : {
+                    lat: 32.7502,
+                    lng: 114.7655
+                }
+            };
+        map = new google.maps.Map(document.getElementById("map"), mapOptions); //creates and initializes the map
         this.getRouteData();
         },
 
     getRouteData() {
-        var path =  []
         axios.get('/getData').then(response => {
             //console.log(response);
             //response will be path coordinates of current logged in user
             if(response.data == 'No data found'){
                 console.log(response.data);
             }else{
-                path = response.data.map(function (data) { return [data.latitude, data.longitude]; });
+                uniqueRsuIdArray = [...new Set(response.data.map(item => item.rsu_id))];
+                uniqueRsuIdArray.forEach(function(rsuId) {
+                    rsuDataMap.set(
+                        rsuId,
+                        response.data.filter(data => data.rsu_id == rsuId)
+                        .map(function (data) { return [data.latitude, data.longitude]; })
+                    )
+                });
+
+                //path = response.data.map(function (data) { return [data.latitude, data.longitude]; });
                 //console.log(path);
                 //snapToRoads takes up to 100 GPS points, current position plus 99 previous positions (slice)
-                axios.get('https://roads.googleapis.com/v1/snapToRoads', { params: {
-                interpolate: true,
-                key: apiKey,
-                path: path.slice(-100).join('|')
-                }
-                }).then(response => {
-                    //console.log(response.data.snappedPoints);
-                    //response is a set of coordinates snapped to the nearest road for accuracy purposes
-                    this.processRoadsResponse(response.data);
+                counter = 0;
+                rsuDataMap.forEach((values,keys)=>{
+                    axios.get('https://roads.googleapis.com/v1/snapToRoads', { params: {
+                    interpolate: true,
+                    key: apiKey,
+                    path: values.slice(-100).join('|')
+                    }
+                    }).then(response => {
+                        counter++;
+                        //console.log(response.data.snappedPoints);
+                        //response is a set of coordinates snapped to the nearest road for accuracy purposes
+                        this.processRoadsResponse(response.data);
 
-                    var mapOptions =
-                        {
-                            zoom : 16,
-                            center : {
-                                lat: lastPosition.get('lat'),
-                                lng: lastPosition.get('lng')
-                            }
+                        this.drawRoute(keys); //draws the current user's driven path from the previous 100 coordinates
+                        if (counter == rsuDataMap.size) {
+                            this.centerMap();
                         };
-                    map = new google.maps.Map(document.getElementById("map"), mapOptions); //creates and initializes the map
-
-                    this.drawRoute(); //draws the current user's driven path from the previous 100 coordinates
-
-                    //get street name
-                    /*const geocoder = new google.maps.Geocoder();
-                    geocoder
-                        .geocode({ location: {lat: lastPosition.get('lat'), lng: lastPosition.get('lng') } })
-                        .then((response) => {
-                            if (response.results[0]) {
-                                span.textContent = response.results[0].formatted_address;
-                            } else {
-                                span.textContent = "Unrecognized location";
-                            }
-                        })
-                        .catch((e) => console.log("Geocoder failed due to: " + e)); */
-                    axios.get('/getAdjacentData').then(response => {
-                        //get last data from other users
-                        //console.log(response);
-                        if (response.data == 'No data found') {
-                            console.log(response.data);
-                        }else{
-                            //console.log(response.data);
-                            var otherUsersPos = response.data.map(function (data) { return [data.latitude, data.longitude]; });
-                            otherUsersPos.forEach(pos => {
-                                otherUsersLatlng = new google.maps.LatLng(pos[0], pos[1]);
-                                new google.maps.Marker({
-                                    position: otherUsersLatlng,
-                                    map: map,
-                                    draggable: false,
-                                    icon: otherUsersIcon,
-                                });
-                            });
-                        }
                     })
                     .catch(e => {
-                        console.log("getAdjacentData failed due to: " + e);
+                        console.log("snapToRoads failed due to: " + e);
                     });
-                })
-                .catch(e => {
-                    console.log("snapToRoads failed due to: " + e);
+
                 });
             };
         })
@@ -158,7 +139,7 @@ export default {
         lastPosition.set('lng', data.snappedPoints[data.snappedPoints.length-1].location.longitude);
     },
 
-    drawRoute() {
+    drawRoute(rsu_id) {
         var snappedPolyline = new google.maps.Polyline({
             path: snappedCoordinates,
             strokeColor: '#add8e6',
@@ -169,12 +150,20 @@ export default {
         snappedPolyline.setMap(map);
 
         //draws marker on the user's last position
-        const marker = new google.maps.Marker({
-            position: { lat: lastPosition.get('lat'), lng: lastPosition.get('lng') },
-            map: map,
-            draggable: false,
-            icon: mainIcon,
-        });
+        markers.set(
+            rsu_id,
+            new google.maps.Marker({
+                position: { lat: lastPosition.get('lat'), lng: lastPosition.get('lng') },
+                map: map,
+                draggable: false,
+                icon: otherUsersIcon,
+            })
+        );
+    },
+
+    centerMap() {
+        map.setCenter(markers.get([...uniqueRsuIdArray].pop()).getPosition());
+        map.setZoom(16);
     },
   },
   mounted() {

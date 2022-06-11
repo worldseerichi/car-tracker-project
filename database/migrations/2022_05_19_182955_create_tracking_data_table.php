@@ -27,6 +27,7 @@ return new class extends Migration
             $table->double('acel_y')->default(0);
             $table->double('acel_z')->default(0);
             $table->foreignId('rsu_id')->constrained('rsus');
+            $table->timestamp('recorded_at')->useCurrent();
             $table->timestamps();
         });
     }

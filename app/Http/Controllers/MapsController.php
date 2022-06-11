@@ -22,7 +22,7 @@ class MapsController extends Controller
     {
 
         //DB queries and etc go here
-        if(Auth::id() == '' || Auth::id() == 1) { //stop admin user and unauthenticated users from accessing g-p-s route
+        /*if(Auth::id() == '' || Auth::id() == 1) { //stop admin user and unauthenticated users from accessing g-p-s route
             return 'No data found'; //remove this when we have functional middleware
         }
         //$rsu = Rsu::where('user_id', Auth::id())->get(); //doesnt work, see how to query table using foreign key below
@@ -32,12 +32,18 @@ class MapsController extends Controller
 
         if(count($data) == 0){
             return 'No data found';
+        };*/
+
+        $data = TrackingData::get();
+
+        if(count($data) == 0){
+            return 'No data found';
         };
 
         return $data;
     }
 
-    public function getAdjacentData(){
+    /*public function getAdjacentData(){
         $rsu = User::with('rsu')->find(Auth::id())->rsu;
 
         $data = TrackingData::orderBy('id', 'DESC')->get();
@@ -63,7 +69,7 @@ class MapsController extends Controller
             return !$duplicate;
         })->values();
         return $lastCoordsRsus;
-    }
+    }*/
 
     public function postData(Request $request){
         $request->validate([
