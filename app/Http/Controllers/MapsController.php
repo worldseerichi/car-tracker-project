@@ -84,12 +84,13 @@ class MapsController extends Controller
             'acel_x' => 'required',
             'acel_y' => 'required',
             'acel_z' => 'required',
-            'rsu_id' => 'required'
+            'rsu_id' => 'required',
+            'recorded_at' => 'required'
         ]);
         Rsu::where('id', $request->get('rsu_id'))->firstOr(function () {
             return 'RSU not found';
         });
-        $data = $request->only('latitude', 'longitude','altitude','bearing','velocity','gir_x','gir_y','gir_z','acel_x','acel_y','acel_z','rsu_id');
+        $data = $request->only('latitude', 'longitude','altitude','bearing','velocity','gir_x','gir_y','gir_z','acel_x','acel_y','acel_z','rsu_id','recorded_at');
         $this->create($data);
         return 'Data added';
     }
@@ -97,18 +98,19 @@ class MapsController extends Controller
     public function create(array $data)
     {
       return TrackingData::create([
-        'latitude'  => $data['latitude'],
-        'longitude' => $data['longitude'],
-        'altitude'  => $data['altitude'],
-        'bearing'   => $data['bearing'],
-        'velocity'  => $data['velocity'],
-        'gir_x'     => $data['gir_x'],
-        'gir_y'     => $data['gir_y'],
-        'gir_z'     => $data['gir_z'],
-        'acel_x'    => $data['acel_x'],
-        'acel_y'    => $data['acel_y'],
-        'acel_z'    => $data['acel_z'],
-        'rsu_id'    => $data['rsu_id'],
+        'latitude'      => $data['latitude'],
+        'longitude'     => $data['longitude'],
+        'altitude'      => $data['altitude'],
+        'bearing'       => $data['bearing'],
+        'velocity'      => $data['velocity'],
+        'gir_x'         => $data['gir_x'],
+        'gir_y'         => $data['gir_y'],
+        'gir_z'         => $data['gir_z'],
+        'acel_x'        => $data['acel_x'],
+        'acel_y'        => $data['acel_y'],
+        'acel_z'        => $data['acel_z'],
+        'rsu_id'        => $data['rsu_id'],
+        'recorded_at'   => $data['recorded_at']
       ]);
     }
 }
