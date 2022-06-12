@@ -18,7 +18,10 @@ var snappedCoordinates = [];
 var lastPosition = new Map();
 var apiKey = process.env.MIX_API_KEY;
 var uniqueRsuIdArray;
+var selectedMarker;
+var selectedPolyline;
 var markers = new Map();
+var polylines = new Map();
 var rsuDataMap = new Map();
 var counter = 0;
 var otherUsersIcon = {
@@ -140,14 +143,17 @@ export default {
     },
 
     drawRoute(rsu_id) {
-        var snappedPolyline = new google.maps.Polyline({
-            path: snappedCoordinates,
-            strokeColor: '#add8e6',
-            strokeWeight: 4,
-            strokeOpacity: 0.9,
-        });
+        polylines.set(
+          rsu_id,
+          new google.maps.Polyline({
+              path: snappedCoordinates,
+              strokeColor: '#000000', //old color: #add8e6 light blue
+              strokeWeight: 4,
+              strokeOpacity: 0.5,
+          })
+        );
         //draws the route path
-        snappedPolyline.setMap(map);
+        polylines.get(rsu_id).setMap(map);
 
         //draws marker on the user's last position
         markers.set(
@@ -159,15 +165,37 @@ export default {
                 icon: otherUsersIcon,
             })
         );
+        google.maps.event.addListener(markers.get(rsu_id), 'click', () => {this.selectMarker(rsu_id);});
+        google.maps.event.addListener(polylines.get(rsu_id), 'click', () => {this.selectMarker(rsu_id);});
     },
 
     centerMap() {
         map.setCenter(markers.get([...uniqueRsuIdArray].pop()).getPosition());
         map.setZoom(16);
     },
+
+    selectMarker(rsu_id) {
+        if(markers.get(rsu_id) == selectedMarker){ //unselect marker when clicking a selected marker
+          selectedPolyline = null;
+          selectedMarker = null;
+          markers.get(rsu_id).setIcon(otherUsersIcon);
+          polylines.get(rsu_id).setOptions({strokeColor: '#000000', strokeOpacity: 0.5});
+        }else{ //select a marker and unselect others
+            markers.forEach((values,keys)=>{
+              values.setIcon(otherUsersIcon);
+            });
+            polylines.forEach((values,keys)=>{
+              values.setOptions({strokeColor: '#000000', strokeOpacity: 0.5});
+            });
+            markers.get(rsu_id).setIcon(mainIcon);
+            polylines.get(rsu_id).setOptions({strokeColor: '#FF0000', strokeOpacity: 0.9});
+            selectedPolyline = polylines.get(rsu_id);
+            selectedMarker = markers.get(rsu_id);
+        };
+    },
   },
   mounted() {
-    this.initMap()
+    this.initMap();
   }
 }
 </script>
