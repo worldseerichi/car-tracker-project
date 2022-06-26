@@ -13,7 +13,12 @@ import AppHeader from '../components/header'
 
 import axios from 'axios';
 
+import * as CenterFilter from '../controls.js';
+
 var map;
+var controlUI;
+var controlDiv;
+var controlText;
 var snappedCoordinates = [];
 var lastPosition = new Map();
 var apiKey = process.env.MIX_API_KEY;
@@ -80,6 +85,29 @@ export default {
         this.getRouteData();
         },
 
+    giveButton(map){
+      controlDiv = document.createElement('div');
+      controlUI = document.createElement('div');
+      controlText = document.createElement('div');
+
+      controlUI.style.backgroundColor = '#fff';
+      controlUI.style.border = '2px solid #ebebeb';
+      controlUI.style.borderRadius = '15px';
+      controlUI.style.padding = '10px';
+      controlUI.title = 'Filtrar';
+
+      controlDiv.appendChild(controlUI);  
+
+      controlText.style.fontSize = '16px';
+      controlText.style.textAlign = 'center';
+      controlText.style.lineHeight = '20px';
+      controlText.style.color = '#333';
+      controlText.innerHTML = 'Filtrar';
+
+      controlUI.appendChild(controlText);
+      
+      return controlDiv;
+    },
     getRouteData() {
         axios.get('/getData').then(response => {
             //console.log(response);
@@ -116,6 +144,49 @@ export default {
                         if (counter == rsuDataMap.size) {
                             this.centerMap();
                         };
+<<<<<<< Updated upstream
+=======
+                    map = new google.maps.Map(document.getElementById("map"), mapOptions); //creates and initializes the map
+                    
+                    const centerFilterControl = this.giveButton(map);
+                    
+                    console.log(centerFilterControl);
+                    
+                    map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(centerFilterControl);
+                    
+                    this.drawRoute(); //draws the current user's driven path from the previous 100 coordinates
+
+                    //get street name
+                    /*const geocoder = new google.maps.Geocoder();
+                    geocoder
+                        .geocode({ location: {lat: lastPosition.get('lat'), lng: lastPosition.get('lng') } })
+                        .then((response) => {
+                            if (response.results[0]) {
+                                span.textContent = response.results[0].formatted_address;
+                            } else {
+                                span.textContent = "Unrecognized location";
+                            }
+                        })
+                        .catch((e) => console.log("Geocoder failed due to: " + e)); */
+                    axios.get('/getAdjacentData').then(response => {
+                        //get last data from other users
+                        //console.log(response);
+                        if (response.data == 'No data found') {
+                            console.log(response.data);
+                        }else{
+                            //console.log(response.data);
+                            var otherUsersPos = response.data.map(function (data) { return [data.latitude, data.longitude]; });
+                            otherUsersPos.forEach(pos => {
+                                otherUsersLatlng = new google.maps.LatLng(pos[0], pos[1]);
+                                new google.maps.Marker({
+                                    position: otherUsersLatlng,
+                                    map: map,
+                                    draggable: false,
+                                    icon: otherUsersIcon,
+                                });
+                            });
+                        }
+>>>>>>> Stashed changes
                     })
                     .catch(e => {
                         console.log("snapToRoads failed due to: " + e);
@@ -195,8 +266,13 @@ export default {
     },
   },
   mounted() {
+<<<<<<< Updated upstream
     this.initMap();
   }
+=======
+    this.initMap()
+  },
+>>>>>>> Stashed changes
 }
 </script>
 
