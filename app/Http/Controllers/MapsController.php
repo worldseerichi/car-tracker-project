@@ -71,21 +71,47 @@ class MapsController extends Controller
         return $lastCoordsRsus;
     }*/
 
+    public function getToken(){
+        return csrf_token();
+    }
+
+    public function postDataBatch(Request $request){
+        $request->validate([
+            'data.*.latitude' => 'required|numeric',
+            'data.*.longitude' => 'required|numeric',
+            'data.*.altitude' => 'required|numeric',
+            'data.*.bearing' => 'required|numeric',
+            'data.*.velocity' => 'required|numeric',
+            'data.*.gir_x' => 'required|numeric',
+            'data.*.gir_y' => 'required|numeric',
+            'data.*.gir_z' => 'required|numeric',
+            'data.*.acel_x' => 'required|numeric',
+            'data.*.acel_y' => 'required|numeric',
+            'data.*.acel_z' => 'required|numeric',
+            'data.*.rsu_id' => 'required|numeric',
+            'data.*.recorded_at' => 'required|date'
+        ]);
+        foreach ($request->get('data') as $data) {
+            $this->create($data);
+        }
+        return 'Data added';
+    }
+
     public function postData(Request $request){
         $request->validate([
-            'latitude' => 'required',
-            'longitude' => 'required',
-            'altitude' => 'required',
-            'bearing' => 'required',
-            'velocity' => 'required',
-            'gir_x' => 'required',
-            'gir_y' => 'required',
-            'gir_z' => 'required',
-            'acel_x' => 'required',
-            'acel_y' => 'required',
-            'acel_z' => 'required',
-            'rsu_id' => 'required',
-            'recorded_at' => 'required'
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'altitude' => 'required|numeric',
+            'bearing' => 'required|numeric',
+            'velocity' => 'required|numeric',
+            'gir_x' => 'required|numeric',
+            'gir_y' => 'required|numeric',
+            'gir_z' => 'required|numeric',
+            'acel_x' => 'required|numeric',
+            'acel_y' => 'required|numeric',
+            'acel_z' => 'required|numeric',
+            'rsu_id' => 'required|numeric',
+            'recorded_at' => 'required|date'
         ]);
         Rsu::where('id', $request->get('rsu_id'))->firstOr(function () {
             return 'RSU not found';

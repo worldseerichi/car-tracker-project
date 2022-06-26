@@ -23,8 +23,11 @@ Route::get('/login', [MapsController::class, 'index'])->name('login');
 Route::get('/register-accounts', [MapsController::class, 'index']);
 
 Route::get('/getData', [MapsController::class, 'getData']);
-Route::get('/getAdjacentData', [MapsController::class, 'getAdjacentData']);
+//Route::get('/getAdjacentData', [MapsController::class, 'getAdjacentData']);
 Route::post('/postData', [MapsController::class, 'postData']);
+Route::post('/postDataBatch', [MapsController::class, 'postDataBatch']);
+
+Route::get('/getToken', [MapsController::class, 'getToken']);
 
 Route::resource('users','UserController');
 Route::resource('rsus','RsuController');
