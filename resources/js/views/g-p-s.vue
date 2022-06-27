@@ -14,6 +14,9 @@ import AppHeader from '../components/header'
 import axios from 'axios';
 
 var map;
+var controlDiv;
+var controlUI;
+var controlText;
 var snappedCoordinates = [];
 var lastPosition = new Map();
 var apiKey = process.env.MIX_API_KEY;
@@ -67,6 +70,30 @@ export default {
     ],
   },
   methods: {
+    initFilterButton(){
+        controlDiv = document.createElement('div');
+        controlUI = document.createElement('div');
+        controlText = document.createElement('div');
+
+        controlUI.style.backgroundColor = '#fff';
+        controlUI.style.border = '2px solid #ebebeb';
+        controlUI.style.borderRadius = '15px';
+        controlUI.style.padding = '10px';
+        controlUI.title = 'Filtrar';
+
+        controlDiv.appendChild(controlUI);
+
+        controlText.style.fontSize = '16px';
+        controlText.style.textAlign = 'center';
+        controlText.style.lineHeight = '20px';
+        controlText.style.color = '#333';
+        controlText.innerHTML = 'Filtrar';
+
+        controlUI.appendChild(controlText);
+
+        return controlDiv;
+    },
+
     initMap() {
         var mapOptions =
             {
@@ -77,8 +104,10 @@ export default {
                 }
             };
         map = new google.maps.Map(document.getElementById("map"), mapOptions); //creates and initializes the map
+        const centerFilterControl = this.initFilterButton();
+        map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(centerFilterControl);
         this.getRouteData();
-        },
+    },
 
     getRouteData() {
         axios.get('/getData').then(response => {
