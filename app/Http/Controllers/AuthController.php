@@ -30,10 +30,27 @@ class AuthController extends Controller
         return $redir;
     }
 
+    public function loginRequestMobile(Request $request)
+    {
+        $request->validate([
+            'username' => 'required',
+            'password' => 'required',
+        ]);
+        $username = $request->input('username');
+        $password = $request->input('password');
+        if (Auth::attempt(['username' => $username, 'password' => $password, 'is_admin' => 0])) {
+            $rsu = Rsu::where('user_id', Auth::user()->id)->firstOr(function () {
+                return 'RSU not found';
+            });
+            return $rsu['id'];
+        }
+
+        return 'Login failed';
+    }
 
     public function registrationRequest(Request $request)
     {
-        if (Auth::check() && Auth::user()->is_admin == 1) {
+        if (!Auth::check() || Auth::user()->is_admin == 0) {
             return 'You are not allowed to register accounts';
         }
         $request->validate([
@@ -54,11 +71,6 @@ class AuthController extends Controller
         Rsu::create(['user_id' => $check['id']]);
 
         return 'User created';
-    }
-
-    public function currentUser(Request $request)
-    {
-      return $request->user();
     }
 
     public function create(array $data)
