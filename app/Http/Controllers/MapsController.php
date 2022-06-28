@@ -71,8 +71,9 @@ class MapsController extends Controller
         return $lastCoordsRsus;
     }*/
 
-    public function getToken(){
-        return csrf_token();
+    public function getToken(Request $request){
+        //return csrf_token();
+        return $request->session()->token();
     }
 
     public function postDataBatch(Request $request){

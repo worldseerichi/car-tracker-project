@@ -19,9 +19,11 @@ class AuthController extends Controller
             'username' => 'required',
             'password' => 'required',
         ]);
-
-        $credentials = $request->only('username', 'password');
-        if (Auth::attempt($credentials)) {
+        $username = $request->input('username');
+        $password = $request->input('password');
+        //$credentials = $request->only('username', 'password');
+        if (Auth::attempt(['username' => $username, 'password' => $password, 'is_admin' => 1])) {
+            $request->session()->regenerate();
             $redir = '/';
         }
 
@@ -31,6 +33,9 @@ class AuthController extends Controller
 
     public function registrationRequest(Request $request)
     {
+        if (Auth::check() && Auth::user()->is_admin == 1) {
+            return 'You are not allowed to register accounts';
+        }
         $request->validate([
             'username' => 'required',
             'password' => 'required|min:4',
@@ -69,6 +74,6 @@ class AuthController extends Controller
         Session::flush();
         Auth::logout();
 
-        return Redirect('dashboard');
+        //return Redirect('dashboard');
     }
 }

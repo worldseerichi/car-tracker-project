@@ -16,7 +16,7 @@ const actions = {
             axios.post('login-request',user).then(response => {
                 console.log(response);
                 if (response.data=='/'){
-                console.log(response);   
+                console.log(response);
                 localStorage.setItem(
                         "login_token",
                         response.data.access_token
@@ -30,7 +30,7 @@ const actions = {
             .catch(function (error) {
                       console.log(error);
                   });
-            
+
           })
     }
 };
@@ -40,9 +40,9 @@ const mutations = {
         axios.get('/sanctum/csrf-cookie').then(response => {
             axios.post('login-request',user).then(response => {
                 if (response.data=='/'){
-                console.log(response); 
-                state.keygen = response.data.access_token  
-            
+                console.log(response);
+                state.keygen = response.data.access_token
+
                // self.$router.push('/')
               }else{
                // self.$router.push('login')
@@ -51,7 +51,7 @@ const mutations = {
             .catch(function (error) {
                       console.log(error);
                   });
-            
+
           })
     }
 };

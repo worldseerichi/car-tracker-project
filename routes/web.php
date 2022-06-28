@@ -35,7 +35,7 @@ Route::resource('trackingdata','TrackingDataController');
 
 Route::post('login-request', [AuthController::class, 'loginRequest'])->name('login-request');
 Route::post('registration-request', [AuthController::class, 'registrationRequest'])->name('registration-request');
-Route::get('signout', [AuthController::class, 'signOut'])->name('signout');
+Route::post('signout', [AuthController::class, 'signOut'])->name('signout');
 
 //routes for middleware checking
 Route::get('loginCheck', [AuthController::class, 'currentUser'])->name('loginCheck');

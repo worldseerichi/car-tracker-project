@@ -9,8 +9,8 @@
     </div>
     <div data-type="MobileMenu" class="header-mobile-menu">
       <div class="header-top">
-        <router-link to="/g-p-s" class="header-navlink">
-          <h1 class="header-heading textSM">{{ heading11 }}</h1>
+        <router-link to="/" class="header-navlink">
+          <h1 class="header-heading textSM">{{ heading1 }}</h1>
         </router-link>
         <div data-type="CloseMobileMenu" class="header-close-menu">
           <svg viewBox="0 0 1024 1024" class="header-icon02">
@@ -28,7 +28,7 @@
                 d="M576 706.612v-52.78c70.498-39.728 128-138.772 128-237.832 0-159.058 0-288-192-288s-192 128.942-192 288c0 99.060 57.502 198.104 128 237.832v52.78c-217.102 17.748-384 124.42-384 253.388h896c0-128.968-166.898-235.64-384-253.388z"
               ></path>
             </svg>
-            <span class="header-text textSM">PROFILE</span>
+            <span class="header-text textSM">Tracking</span>
           </div>
         </router-link>
         <div class="header-container1">
@@ -80,7 +80,7 @@
           <span class="header-text2 textSM">Tracking</span>
         </div>
       </router-link>
-      <router-link to="/register-accounts" class="header-navlink4">
+      <router-link to="/register-accounts" class="header-navlink4" v-if="this.$store.getters.getAdminLogged">
         <div class="header-container5">
           <svg viewBox="0 0 1170.2857142857142 1024" class="header-icon19">
             <path
@@ -91,7 +91,7 @@
         </div>
       </router-link>
     </div>
-    <div class="header-container6">
+    <div class="header-container6" v-if="this.$store.getters.getAdminLogged != true">
       <router-link to="/login" class="header-navlink5">
         <div class="header-container7">
           <svg viewBox="0 0 1024 1024" class="header-icon21">
@@ -103,6 +103,18 @@
         </div>
       </router-link>
     </div>
+    <div class="header-container6" v-if="this.$store.getters.getAdminLogged">
+      <!--<router-link to="/" class="header-navlink5"> -->
+        <div class="header-container7" id="logout" @click="signout()">
+          <svg viewBox="0 0 1024 1024" class="header-icon21">
+            <path
+              d="M512 0c282.857 0 512 229.143 512 512 0 281.143-228 512-512 512-283.429 0-512-230.286-512-512 0-282.857 229.143-512 512-512zM865.714 772c53.143-73.143 85.143-162.857 85.143-260 0-241.714-197.143-438.857-438.857-438.857s-438.857 197.143-438.857 438.857c0 97.143 32 186.857 85.143 260 20.571-102.286 70.286-186.857 174.857-186.857 46.286 45.143 109.143 73.143 178.857 73.143s132.571-28 178.857-73.143c104.571 0 154.286 84.571 174.857 186.857zM731.429 402.286c0-121.143-98.286-219.429-219.429-219.429s-219.429 98.286-219.429 219.429 98.286 219.429 219.429 219.429 219.429-98.286 219.429-219.429z"
+            ></path>
+          </svg>
+          <span class="header-text5 textSM"><span>Logout</span></span>
+        </div>
+     <!-- </router-link> -->
+    </div>
   </div>
 </template>
 
@@ -111,19 +123,23 @@ export default {
   name: 'Header',
   props: {
     rootClassName: String,
-    heading11: {
-      type: String,
-      default: 'NOTUS PRO',
-    },
     heading1: {
       type: String,
       default: 'Vehicle Tracker',
     },
   },
+  methods: {
+      signout(){
+        this.$store.commit('storeLogout')
+      },
+  }
 }
 </script>
 
 <style scoped>
+#logout {
+    cursor: pointer;
+}
 .header-header {
   flex: 0 0 auto;
   width: 100%;

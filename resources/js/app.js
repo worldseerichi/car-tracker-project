@@ -26,9 +26,6 @@ const router = VueRouter.createRouter({
             name: 'GPS',
             path: '/g-p-s',
             component: GPS,
-            meta: {
-                middleware: auth,
-            },
         },
         {
             name: 'Home',
@@ -44,6 +41,9 @@ const router = VueRouter.createRouter({
             name: 'RegisterAccounts',
             path: '/register-accounts',
             component: RegisterAccounts,
+            meta: {
+                middleware: auth,
+            },
         },
       ],
   });
@@ -75,6 +75,7 @@ router.beforeEach((to, from, next) => {
             next,
             router,
             to,
+            store,
         };
         const nextMiddleware = nextFactory(context, middleware, 1);
 
