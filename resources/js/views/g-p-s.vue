@@ -10,7 +10,7 @@
 
 <script>
 import AppHeader from '../components/header'
-
+//import '@coreui/coreui/dist/css/coreui.min.css'
 import axios from 'axios';
 
 var map;
@@ -58,7 +58,6 @@ export default {
   name: 'GPS',
   components: {
     AppHeader,
-
   },
   metaInfo: {
     title: 'GPS - Vehicle Tracker',
@@ -137,10 +136,10 @@ export default {
                     }
                     }).then(response => {
                         counter++;
-                        //console.log(response.data.snappedPoints);
                         //response is a set of coordinates snapped to the nearest road for accuracy purposes
                         this.processRoadsResponse(response.data);
 
+                        //after adapting code to request snapToRoads in loop, call drawRoute in last iteration (do while stuff left to request > 0)
                         this.drawRoute(keys); //draws the current user's driven path from the previous 100 coordinates
                         if (counter == rsuDataMap.size) {
                             this.centerMap();
