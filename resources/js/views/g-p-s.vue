@@ -265,8 +265,9 @@ export default {
 .g-p-s-container1 {
   width: 100%;
   border: 2px dashed rgba(120, 120, 120, 0.4);
-  height: 725px;
+  /*height: 525px;*/
   display: flex;
+  flex: 1 1 auto;
   z-index: 100;
   box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1),0 10px 10px -5px rgba(0,0,0,0.04);
   margin-top: -13.5rem;

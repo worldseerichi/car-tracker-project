@@ -64,9 +64,9 @@ export default {
   flex-direction: column;
 }
 .home-hero {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   width: 100%;
-  height: 80vh;
+  /*height: 100%;*/
   display: flex;
   position: relative;
   align-items: center;
