@@ -10,8 +10,8 @@
             <span>Tracking 2022</span>
           </h1>
           <span class="home-text3">
-            <span>*Tex</span>
-            <span>to de exemplo de descrição*</span>
+            <span></span>
+            <span></span>
             <span></span>
           </span>
           <router-link to="/g-p-s" class="home-navlink button">

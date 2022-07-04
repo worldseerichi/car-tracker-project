@@ -98,7 +98,7 @@ export default {
                 polylines = new Map();
                 uniqueRsuIdArray = [...new Set(response.data.map(item => item.rsu_id))];
                 if (this.$store.getters.isFiltered) {
-                    console.log('filtered');
+                    //console.log('filtered');
                     uniqueRsuIdArray.forEach(function(rsuId) {
                         if (response.data.filter(data => data.rsu_id == rsuId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate).length > 0) {
                             rsuDataMap.set(
@@ -235,7 +235,7 @@ export default {
   watch: {
     '$store.state.filter': {deep: true,
         handler() {
-            console.log("filter changed");
+            //console.log("filter changed");
             markers.forEach((values,keys)=>{
               values.setMap(null);
             });
