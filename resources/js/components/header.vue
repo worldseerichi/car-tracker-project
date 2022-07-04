@@ -67,6 +67,13 @@
     </div>
     <div class="header-container2"></div>
     <div class="header-container3">
+        <div class="header-container4" style="cursor: pointer;" @click="toggleSidebar()">
+            <svg viewBox="0 0 1024 1024" class="header-icon17">
+                <path
+                    d="M64 192h896v192h-896zM64 448h896v192h-896zM64 704h896v192h-896z"
+                ></path>
+            </svg>
+        </div>
       <router-link to="/" class="header-navlink2">
         <h1 class="header-heading1 textSM">{{ heading1 }}</h1>
       </router-link>
@@ -87,7 +94,7 @@
               d="M402.286 512c-121.143 0-219.429-98.286-219.429-219.429s98.286-219.429 219.429-219.429 219.429 98.286 219.429 219.429-98.286 219.429-219.429 219.429zM950.857 585.143h201.143c9.714 0 18.286 8.571 18.286 18.286v109.714c0 9.714-8.571 18.286-18.286 18.286h-201.143v201.143c0 9.714-8.571 18.286-18.286 18.286h-109.714c-9.714 0-18.286-8.571-18.286-18.286v-201.143h-201.143c-9.714 0-18.286-8.571-18.286-18.286v-109.714c0-9.714 8.571-18.286 18.286-18.286h201.143v-201.143c0-9.714 8.571-18.286 18.286-18.286h109.714c9.714 0 18.286 8.571 18.286 18.286v201.143zM530.286 713.143c0 40 33.143 73.143 73.143 73.143h146.286v136c-28 20.571-63.429 28.571-97.714 28.571h-499.429c-91.429 0-152.571-54.857-152.571-148 0-129.143 30.286-327.429 197.714-327.429 9.143 0 15.429 4 22.286 9.714 56 42.857 110.286 69.714 182.286 69.714s126.286-26.857 182.286-69.714c6.857-5.714 13.143-9.714 22.286-9.714 48.571 0 91.429 18.286 124 54.857h-127.429c-40 0-73.143 33.143-73.143 73.143v109.714z"
             ></path>
           </svg>
-          <span class="header-text3 textSM"><span>Register Accounts</span></span>
+          <span class="header-text3 textSM"><span>Manage Users</span></span>
         </div>
       </router-link>
     </div>
@@ -132,6 +139,9 @@ export default {
       signout(){
         this.$store.commit('storeLogout')
       },
+      toggleSidebar() {
+        this.$store.commit('toggleSidebar')
+      },
   }
 }
 </script>
@@ -160,6 +170,16 @@ export default {
   justify-content: space-between;
 }
 .header-icon {
+  width: 24px;
+  height: 24px;
+}
+.header-container4 {
+  display: flex;
+  align-self: center;
+  align-items: flex-start;
+}
+.header-icon17 {
+  fill: #ffffff;
   width: 24px;
   height: 24px;
 }
@@ -304,6 +324,7 @@ export default {
   font-weight: 700;
   margin-left: var(--dl-space-space-halfunit);
   margin-right: 5rem;
+  margin-top: 10px;
   text-decoration: none;
 }
 .header-navlink3 {

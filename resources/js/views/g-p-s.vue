@@ -14,11 +14,12 @@ import AppHeader from '../components/header'
 import axios from 'axios';
 
 var map;
-var controlDiv;
+/*var controlDiv;
 var controlUI;
-var controlText;
+var controlText;*/
 var snappedCoordinates = [];
 var lastPosition = new Map();
+var geocoder;
 var apiKey = process.env.MIX_API_KEY;
 var uniqueRsuIdArray;
 var selectedMarker;
@@ -69,30 +70,6 @@ export default {
     ],
   },
   methods: {
-    initFilterButton(){
-        controlDiv = document.createElement('div');
-        controlUI = document.createElement('div');
-        controlText = document.createElement('div');
-
-        controlUI.style.backgroundColor = '#fff';
-        controlUI.style.border = '2px solid #ebebeb';
-        controlUI.style.borderRadius = '15px';
-        controlUI.style.padding = '10px';
-        controlUI.title = 'Filtrar';
-
-        controlDiv.appendChild(controlUI);
-
-        controlText.style.fontSize = '16px';
-        controlText.style.textAlign = 'center';
-        controlText.style.lineHeight = '20px';
-        controlText.style.color = '#333';
-        controlText.innerHTML = 'Filtrar';
-
-        controlUI.appendChild(controlText);
-
-        return controlDiv;
-    },
-
     initMap() {
         var mapOptions =
             {
@@ -103,8 +80,7 @@ export default {
                 }
             };
         map = new google.maps.Map(document.getElementById("map"), mapOptions); //creates and initializes the map
-        const centerFilterControl = this.initFilterButton();
-        map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(centerFilterControl);
+        geocoder = new google.maps.Geocoder();
         this.getRouteData();
     },
 
@@ -115,14 +91,34 @@ export default {
             if(response.data == 'No data found'){
                 console.log(response.data);
             }else{
+                var self = this;
+                uniqueRsuIdArray = new Set();
+                rsuDataMap = new Map();
+                markers = new Map();
+                polylines = new Map();
                 uniqueRsuIdArray = [...new Set(response.data.map(item => item.rsu_id))];
-                uniqueRsuIdArray.forEach(function(rsuId) {
-                    rsuDataMap.set(
-                        rsuId,
-                        response.data.filter(data => data.rsu_id == rsuId)
-                        .map(function (data) { return [data.latitude, data.longitude]; })
-                    )
-                });
+                if (this.$store.getters.isFiltered) {
+                    console.log('filtered');
+                    uniqueRsuIdArray.forEach(function(rsuId) {
+                        if (response.data.filter(data => data.rsu_id == rsuId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate).length > 0) {
+                            rsuDataMap.set(
+                                rsuId,
+                                response.data.filter(data => data.rsu_id == rsuId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate)
+                                .map(function (data) { return [data.latitude, data.longitude]; })
+                            )
+                        }
+                    });
+                }else{
+                    uniqueRsuIdArray.forEach(function(rsuId) {
+                        rsuDataMap.set(
+                            rsuId,
+                            response.data.filter(data => data.rsu_id == rsuId)
+                            .map(function (data) { return [data.latitude, data.longitude]; })
+                        )
+                    });
+                }
+
+                //if rsuDataMap.size is 0, show toast message about no data found
 
                 //path = response.data.map(function (data) { return [data.latitude, data.longitude]; });
                 //console.log(path);
@@ -198,8 +194,19 @@ export default {
     },
 
     centerMap() {
-        map.setCenter(markers.get([...uniqueRsuIdArray].pop()).getPosition());
-        map.setZoom(16);
+        if (this.$store.getters.getLocation == '') {
+            map.setCenter(markers.get([...uniqueRsuIdArray].pop()).getPosition());
+            map.setZoom(14);
+        }else{
+            geocoder.geocode( { 'address': this.$store.getters.getLocation}, function(results, status) {
+                if (status == 'OK') {
+                    map.setCenter(results[0].geometry.location);
+                    map.setZoom(14);
+                } else {
+                    console.log('Geocode was not successful for the following reason: ' + status);
+                }
+            });
+        }
     },
 
     selectMarker(rsu_id) {
@@ -224,6 +231,20 @@ export default {
   },
   mounted() {
     this.initMap();
+  },
+  watch: {
+    '$store.state.filter': {deep: true,
+        handler() {
+            console.log("filter changed");
+            markers.forEach((values,keys)=>{
+              values.setMap(null);
+            });
+            polylines.forEach((values,keys)=>{
+              values.setMap(null);
+            });
+            this.getRouteData();
+        }
+    }
   }
 }
 </script>
