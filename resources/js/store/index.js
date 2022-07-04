@@ -12,12 +12,25 @@ export default new Vuex.Store({
 
 import {createStore } from 'vuex'
 import axios from 'axios'
+import createPersistedState from 'vuex-persistedstate'
 
 export default createStore({
+    plugins: [createPersistedState({
+        storage: window.sessionStorage,
+        paths: ['sidebarShown'] // only save sidebarShown state in sessionStorage
+    })],
     state:{
         user: {},
         key: "",
         adminLogged: false,
+        sidebarShown: false,
+        filtered: false,
+        filter: {
+            location: '',
+            range: 300,
+            start_date: null,
+            end_date: null,
+        }
     },
     mutations:{
        async storeLogin(state,payload){
@@ -51,6 +64,16 @@ export default createStore({
                           console.log(error);
             });
         },
+        async toggleSidebar(state,payload){
+            state.sidebarShown = !state.sidebarShown;
+        },
+        async filterData(state,payload){
+            state.filtered = true;
+            state.filter.location = payload.location;
+            state.filter.range = payload.range;
+            state.filter.start_date = payload.start_date;
+            state.filter.end_date = payload.end_date;
+        }
 
     },
     actions:{},
@@ -60,6 +83,24 @@ export default createStore({
         },
         getAdminLogged(state){
             return state.adminLogged
+        },
+        getSidebarShown(state){
+            return state.sidebarShown
+        },
+        getFilter(state){
+            return state.filter
+        },
+        getStartDate(state){
+            return state.filter.start_date
+        },
+        getEndDate(state){
+            return state.filter.end_date
+        },
+        getLocation(state){
+            return state.filter.location
+        },
+        isFiltered(state){
+            return state.filtered
         }
     },
     modules:{},

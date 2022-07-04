@@ -43,6 +43,6 @@ Route::post('login-request-mobile', [AuthController::class, 'loginRequestMobile'
 Route::post('registration-request', [AuthController::class, 'registrationRequest'])->name('registration-request');
 Route::post('signout', [AuthController::class, 'signOut'])->name('signout');
 
-Auth::routes();
+//Auth::routes();
 
 //Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
