@@ -16,6 +16,9 @@ use Illuminate\Support\Facades\Auth;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+//Route::get('/{any}', [MapsController::class, 'index'])->where('any', '.*');
+
 //pages
 Route::get('/', [MapsController::class, 'index'])->name('dashboard');
 Route::get('/g-p-s', [MapsController::class, 'index']);

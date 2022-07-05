@@ -96,6 +96,7 @@ export default {
                 rsuDataMap = new Map();
                 markers = new Map();
                 polylines = new Map();
+                console.log(response);
                 uniqueRsuIdArray = [...new Set(response.data.map(item => item.rsu_id))];
                 if (this.$store.getters.isFiltered) {
                     //console.log('filtered');
