@@ -17,7 +17,7 @@ import createPersistedState from 'vuex-persistedstate'
 export default createStore({
     plugins: [createPersistedState({
         storage: window.sessionStorage,
-        paths: ['sidebarShown'] // only save sidebarShown state in sessionStorage
+        paths: ['sidebarShown', 'adminLogged'] // save these states in session storage
     })],
     state:{
         user: {},
@@ -36,15 +36,15 @@ export default createStore({
        async storeLogin(state,payload){
             //console.log("storeLogin");
             axios.get('/sanctum/csrf-cookie').then(response => {
-                console.log(response);
-                axios.post('login-request',payload).then(response => {
+                //console.log(response);
+                axios.post('login-request',payload.user).then(response => {
                     if (response.data=='/'){
                         //console.log(response)
                         console.log("login success");
                         //state.key = response.data.access_token
                         state.adminLogged = true;
 
-                        // self.$router.push('/')
+                        payload.self.$router.push('/')
                     }else{
                         // self.$router.push('login')
                         console.log("login failed");

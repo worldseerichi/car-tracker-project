@@ -91,7 +91,7 @@ export default {
   },
   methods: {
       login(){
-        this.$store.commit('storeLogin', this.user)
+        this.$store.commit('storeLogin', {user: this.user, self: this});
       },
   }
 }

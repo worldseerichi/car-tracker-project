@@ -14,6 +14,9 @@ class AuthController extends Controller
 
     public function loginRequest(Request $request)
     {
+        if (Auth::check()) {
+            $this->signOut();
+        }
         $redir = 'login';
         $request->validate([
             'username' => 'required',
@@ -22,7 +25,7 @@ class AuthController extends Controller
         $username = $request->input('username');
         $password = $request->input('password');
         //$credentials = $request->only('username', 'password');
-        if (Auth::attempt(['username' => $username, 'password' => $password, 'is_admin' => 1])) {
+        if (Auth::attempt(['username' => $username, 'password' => $password, 'is_admin' => 1], true)) {
             $request->session()->regenerate();
             $redir = '/';
         }

@@ -1,14 +1,4 @@
 <template>
-    <!--<div class="flex-container">
-        <div class="flex-child" id="sidebar"><FilterSidebar/></div>
-        <div class="flex-child" id="router"><router-view/></div>
-    </div>-->
-    <!--<div style="width: 100%; display: table;">
-        <div style="display: table-row">
-            <div style="width: 1px; display: table-cell;"><Sidebar/></div>
-            <div style="display: table-cell;"><router-view/></div>
-        </div>
-    </div>-->
     <div class="app" style="display: flex">
         <Sidebar/>
         <router-view/>
