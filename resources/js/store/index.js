@@ -73,6 +73,13 @@ export default createStore({
             state.filter.range = payload.range;
             state.filter.start_date = payload.start_date;
             state.filter.end_date = payload.end_date;
+        },
+        async resetFilter(state,payload){
+            state.filtered = false;
+            state.filter.location = '';
+            state.filter.range = 300;
+            state.filter.start_date = null;
+            state.filter.end_date = null;
         }
 
     },
@@ -101,6 +108,9 @@ export default createStore({
         },
         isFiltered(state){
             return state.filtered
+        },
+        getRange(state){
+            return state.filter.range
         }
     },
     modules:{},

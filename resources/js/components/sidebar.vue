@@ -4,15 +4,15 @@
       <nav class="sidebar-title">
         <span class="sidebar-text"><span>VT Sidebar</span></span>
       </nav>
-      <nav class="sidebar-filter-options">
-        <span class="sidebar-location"><span>Location</span></span>
+      <nav class="sidebar-filter-options" v-show="this.$route.fullPath == '/g-p-s'">
+        <span class="sidebar-location"><span>Location in format: lat,lng</span></span>
         <input
           type="text"
           :placeholder="textinput_placeholder"
           v-model="filter.location"
           class="sidebar-location-input input"
         />
-        <span class="sidebar-range"><span>Range</span></span>
+        <span class="sidebar-range"><span>Range (meters)</span></span>
         <input
           type="number"
           :placeholder="textinput_placeholder1"
@@ -32,7 +32,8 @@
           class="sidebar-end-date-time-input input"
         />
       </nav>
-      <button class="sidebar-button button" @click="filterData()">Filter</button>
+      <button class="sidebar-button button" @click="filterData()" v-show="this.$route.fullPath == '/g-p-s'">Filter</button>
+      <button class="sidebar-button button" @click="resetFilter()" v-show="this.$route.fullPath == '/g-p-s'">Reset Filters</button>
       <nav class="sidebar-navigation">
         <span class="sidebar-text4 textSM">Navigation links:</span>
         <router-link to="/" class="sidebar-navlink">
@@ -83,7 +84,7 @@ export default {
   props: {
     textinput_placeholder: {
       type: String,
-      default: 'type a location',
+      default: 'enter some coordinates',
     },
     textinput_placeholder1: {
       type: String,
@@ -115,17 +116,26 @@ export default {
   },
   methods: {
         toggleSidebar() {
-            this.$store.commit('toggleSidebar')
+            this.$store.commit('toggleSidebar');
         },
         filterData() {
-            this.$store.commit('filterData', this.filter)
+            this.$store.commit('filterData', this.filter);
         },
+        resetFilter() {
+            this.$store.commit('resetFilter');
+            this.filter.location = '';
+            this.filter.range = 300;
+            this.resetDateInputs();
+        },
+        resetDateInputs(){
+            var now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            this.filter.start_date = now.toISOString().slice(0, 16);
+            this.filter.end_date = now.toISOString().slice(0, 16);
+        }
   },
   mounted() {
-    var now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    this.filter.start_date = now.toISOString().slice(0, 16);
-    this.filter.end_date = now.toISOString().slice(0, 16);
+    this.resetDateInputs();
   }
 }
 </script>

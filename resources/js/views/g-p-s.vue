@@ -22,11 +22,17 @@ var lastPosition = new Map();
 var geocoder;
 var apiKey = process.env.MIX_API_KEY;
 var uniqueRsuIdArray;
+const regexExp = /^((\-?|\+?)?\d+(\.\d+)?),\s*((\-?|\+?)?\d+(\.\d+)?)$/gi; // regex expression for checking valid latlng
+var R = 6371.0710; //radius of the earth in kilometers
+var filteredCenter;
+var circles = [];
 var selectedMarker;
 var selectedPolyline;
 var markers = new Map();
 var polylines = new Map();
 var rsuDataMap = new Map();
+var snappedCoordinatesMap = new Map();
+var snappedCoordinates = [];
 var counter = 0;
 var otherUsersIcon = {
     path: "M29.395,0H17.636c-3.117,0-5.643,3.467-5.643,6.584v34.804c0,3.116,2.526,5.644,5.643,5.644h11.759 "
@@ -96,19 +102,43 @@ export default {
                 rsuDataMap = new Map();
                 markers = new Map();
                 polylines = new Map();
+                var validLocationCheck = true;
                 //console.log(response);
                 uniqueRsuIdArray = [...new Set(response.data.map(item => item.rsu_id))];
                 if (this.$store.getters.isFiltered) {
                     //console.log('filtered');
-                    uniqueRsuIdArray.forEach(function(rsuId) {
-                        if (response.data.filter(data => data.rsu_id == rsuId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate).length > 0) {
-                            rsuDataMap.set(
-                                rsuId,
-                                response.data.filter(data => data.rsu_id == rsuId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate)
-                                .map(function (data) { return [data.latitude, data.longitude]; })
-                            )
-                        }
-                    });
+                    if (this.$store.getters.getLocation != '') {
+                        validLocationCheck = this.centerMap();
+                    }
+                    if (validLocationCheck) {
+                        //console.log('valid location');
+                        const rangeCircle = new google.maps.Circle({
+                            strokeColor: "#0096FF",
+                            strokeOpacity: 0.4,
+                            strokeWeight: 2,
+                            fillOpacity: 0,
+                            map,
+                            center: filteredCenter,
+                            radius: this.$store.getters.getRange,
+                        });
+                        circles.push(rangeCircle);
+                        uniqueRsuIdArray.forEach(function(rsuId) {
+                            if (response.data.filter(data => data.rsu_id == rsuId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate).length > 0) {
+                                rsuDataMap.set(
+                                    rsuId,
+                                    response.data.filter(data => data.rsu_id == rsuId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate)
+                                    .map(function (data) { return [data.latitude, data.longitude]; })
+                                )
+                            }
+                        });
+                        rsuDataMap.forEach((values,keys)=>{
+                            console.log(values);
+                            console.log(values[0]);
+                            console.log(values[1]);
+                            console.log(values[0][0]);
+                            //check for data out of range and remove it from map
+                        });
+                    }
                 }else{
                     uniqueRsuIdArray.forEach(function(rsuId) {
                         rsuDataMap.set(
@@ -126,26 +156,34 @@ export default {
                 //snapToRoads takes up to 100 GPS points, current position plus 99 previous positions (slice)
                 counter = 0;
                 rsuDataMap.forEach((values,keys)=>{
-                    axios.get('https://roads.googleapis.com/v1/snapToRoads', { params: {
-                    interpolate: true,
-                    key: apiKey,
-                    path: values.slice(-100).join('|')
-                    }
-                    }).then(response => {
-                        counter++;
-                        //response is a set of coordinates snapped to the nearest road for accuracy purposes
-                        this.processRoadsResponse(response.data);
+                    do {
+                        axios.get('https://roads.googleapis.com/v1/snapToRoads', { params: {
+                        interpolate: true,
+                        key: apiKey,
+                        path: values.slice(-100).join('|')
+                        }
+                        }).then(response => {
+                            counter++;
+                            //response is a set of coordinates snapped to the nearest road for accuracy purposes
+                            this.processRoadsResponse(response.data, keys, values.length);
 
-                        //after adapting code to request snapToRoads in loop, call drawRoute in last iteration (do while stuff left to request > 0)
-                        this.drawRoute(keys); //draws the current user's driven path from the previous 100 coordinates
-                        if (counter == rsuDataMap.size) {
-                            this.centerMap();
-                        };
-                    })
-                    .catch(e => {
-                        console.log("snapToRoads failed due to: " + e);
-                    });
-
+                            if (values.length == 0) { //possible issue with big data due to funky javascript race conditions
+                                this.drawRoute(keys);
+                            }
+                             //draws the current user's driven path from the previous 100 coordinates
+                            if (counter == rsuDataMap.size && this.$store.getters.isFiltered == false) {
+                                this.centerMap();
+                            };
+                        })
+                        .catch(e => {
+                            console.log("snapToRoads failed due to: " + e);
+                        });
+                        if (values.length >= 100) {
+                            values.splice(values.length-100, 100);
+                        } else {
+                            values.splice(0, values.length);
+                        }
+                    }while (values.length > 0);
                 });
             };
         })
@@ -154,13 +192,16 @@ export default {
         });
     },
 
-    processRoadsResponse(data) {
-        snappedCoordinates = [];
+    processRoadsResponse(data, rsu_id, remainingData) {
         for (var i = 0; i < data.snappedPoints.length; i++) {
             var latlng = new google.maps.LatLng(
                 data.snappedPoints[i].location.latitude,
                 data.snappedPoints[i].location.longitude);
             snappedCoordinates.push(latlng);
+        }
+        if (remainingData == 0) {
+            snappedCoordinatesMap.set(rsu_id, snappedCoordinates);
+            snappedCoordinates = [];
         }
         //sets the current user's last coordinates
         lastPosition.set('lat', data.snappedPoints[data.snappedPoints.length-1].location.latitude);
@@ -171,7 +212,7 @@ export default {
         polylines.set(
           rsu_id,
           new google.maps.Polyline({
-              path: snappedCoordinates,
+              path: snappedCoordinatesMap.get(rsu_id),
               strokeColor: '#000000', //old color: #add8e6 light blue
               strokeWeight: 4,
               strokeOpacity: 0.5,
@@ -196,17 +237,31 @@ export default {
 
     centerMap() {
         if (this.$store.getters.getLocation == '') {
-            map.setCenter(markers.get([...uniqueRsuIdArray].pop()).getPosition());
+            filteredCenter = markers.get([...uniqueRsuIdArray].pop()).getPosition();
+            map.setCenter(filteredCenter);
             map.setZoom(14);
         }else{
-            geocoder.geocode( { 'address': this.$store.getters.getLocation}, function(results, status) {
+            //console.log(this.$store.getters.getLocation);
+            if (regexExp.test(this.$store.getters.getLocation)) {
+                var coords = this.$store.getters.getLocation.split(",");
+                filteredCenter = new google.maps.LatLng(parseFloat(coords[0]), parseFloat(coords[1]));
+                map.setCenter(filteredCenter);
+                map.setZoom(14);
+                console.log("valid location");
+                return true;
+            }else{
+                console.log("invalid location");
+                return false;
+            }
+            //previous code for centering map on the given address
+            /*geocoder.geocode( { 'address': this.$store.getters.getLocation}, function(results, status) {
                 if (status == 'OK') {
                     map.setCenter(results[0].geometry.location);
                     map.setZoom(14);
                 } else {
                     console.log('Geocode was not successful for the following reason: ' + status);
                 }
-            });
+            });*/
         }
     },
 
@@ -243,6 +298,10 @@ export default {
             polylines.forEach((values,keys)=>{
               values.setMap(null);
             });
+            circles.forEach((circle) => {
+                circle.setMap(null);
+            });
+            circles = [];
             this.getRouteData();
         }
     }

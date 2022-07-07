@@ -19678,7 +19678,7 @@ __webpack_require__.r(__webpack_exports__);
   props: {
     textinput_placeholder: {
       type: String,
-      "default": 'type a location'
+      "default": 'enter some coordinates'
     },
     textinput_placeholder1: {
       type: String,
@@ -19714,13 +19714,22 @@ __webpack_require__.r(__webpack_exports__);
     },
     filterData: function filterData() {
       this.$store.commit('filterData', this.filter);
+    },
+    resetFilter: function resetFilter() {
+      this.$store.commit('resetFilter');
+      this.filter.location = '';
+      this.filter.range = 300;
+      this.resetDateInputs();
+    },
+    resetDateInputs: function resetDateInputs() {
+      var now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      this.filter.start_date = now.toISOString().slice(0, 16);
+      this.filter.end_date = now.toISOString().slice(0, 16);
     }
   },
   mounted: function mounted() {
-    var now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    this.filter.start_date = now.toISOString().slice(0, 16);
-    this.filter.end_date = now.toISOString().slice(0, 16);
+    this.resetDateInputs();
   }
 });
 
@@ -19822,11 +19831,19 @@ var lastPosition = new Map();
 var geocoder;
 var apiKey = "AIzaSyBqnXP_q-yVVEU10ch5IANHm6OMMaVBFGw";
 var uniqueRsuIdArray;
+var regexExp = /^((\-?|\+?)?\d+(\.\d+)?),\s*((\-?|\+?)?\d+(\.\d+)?)$/gi; // regex expression for checking valid latlng
+
+var R = 6371.0710; //radius of the earth in kilometers
+
+var filteredCenter;
+var circles = [];
 var selectedMarker;
 var selectedPolyline;
 var markers = new Map();
 var polylines = new Map();
 var rsuDataMap = new Map();
+var snappedCoordinatesMap = new Map();
+var snappedCoordinates = [];
 var counter = 0;
 var otherUsersIcon = {
   path: "M29.395,0H17.636c-3.117,0-5.643,3.467-5.643,6.584v34.804c0,3.116,2.526,5.644,5.643,5.644h11.759 " + "c3.116,0,5.644-2.527,5.644-5.644V6.584C35.037,3.467,32.511,0,29.395,0z " + "M34.05,14.188v11.665l-2.729,0.351v-4.806L34.05,14.188z " + "M32.618,10.773c-1.016,3.9-2.219,8.51-2.219,8.51H16.631l-2.222-8.51C14.41,10.773,23.293,7.755,32.618,10.773z " + "M15.741,21.713 v4.492l-2.73-0.349V14.502L15.741,21.713z M13.011,37.938V27.579l2.73,0.343v8.196L13.011,37.938z " + "M14.568,40.882l2.218-3.336 h13.771l2.219,3.336H14.568z M31.321,35.805v-7.872l2.729-0.355v10.048L31.321,35.805z",
@@ -19883,7 +19900,8 @@ var mainIcon = {
           uniqueRsuIdArray = new Set();
           rsuDataMap = new Map();
           markers = new Map();
-          polylines = new Map(); //console.log(response);
+          polylines = new Map();
+          var validLocationCheck = true; //console.log(response);
 
           uniqueRsuIdArray = _toConsumableArray(new Set(response.data.map(function (item) {
             return item.rsu_id;
@@ -19891,17 +19909,40 @@ var mainIcon = {
 
           if (_this.$store.getters.isFiltered) {
             //console.log('filtered');
-            uniqueRsuIdArray.forEach(function (rsuId) {
-              if (response.data.filter(function (data) {
-                return data.rsu_id == rsuId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate;
-              }).length > 0) {
-                rsuDataMap.set(rsuId, response.data.filter(function (data) {
+            if (_this.$store.getters.getLocation != '') {
+              validLocationCheck = _this.centerMap();
+            }
+
+            if (validLocationCheck) {
+              //console.log('valid location');
+              var rangeCircle = new google.maps.Circle({
+                strokeColor: "#0096FF",
+                strokeOpacity: 0.4,
+                strokeWeight: 2,
+                fillOpacity: 0,
+                map: map,
+                center: filteredCenter,
+                radius: _this.$store.getters.getRange
+              });
+              circles.push(rangeCircle);
+              uniqueRsuIdArray.forEach(function (rsuId) {
+                if (response.data.filter(function (data) {
                   return data.rsu_id == rsuId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate;
-                }).map(function (data) {
-                  return [data.latitude, data.longitude];
-                }));
-              }
-            });
+                }).length > 0) {
+                  rsuDataMap.set(rsuId, response.data.filter(function (data) {
+                    return data.rsu_id == rsuId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate;
+                  }).map(function (data) {
+                    return [data.latitude, data.longitude];
+                  }));
+                }
+              });
+              rsuDataMap.forEach(function (values, keys) {
+                console.log(values);
+                console.log(values[0]);
+                console.log(values[1]);
+                console.log(values[0][0]);
+              });
+            }
           } else {
             uniqueRsuIdArray.forEach(function (rsuId) {
               rsuDataMap.set(rsuId, response.data.filter(function (data) {
@@ -19918,29 +19959,39 @@ var mainIcon = {
 
           counter = 0;
           rsuDataMap.forEach(function (values, keys) {
-            axios__WEBPACK_IMPORTED_MODULE_1___default().get('https://roads.googleapis.com/v1/snapToRoads', {
-              params: {
-                interpolate: true,
-                key: apiKey,
-                path: values.slice(-100).join('|')
+            do {
+              axios__WEBPACK_IMPORTED_MODULE_1___default().get('https://roads.googleapis.com/v1/snapToRoads', {
+                params: {
+                  interpolate: true,
+                  key: apiKey,
+                  path: values.slice(-100).join('|')
+                }
+              }).then(function (response) {
+                counter++; //response is a set of coordinates snapped to the nearest road for accuracy purposes
+
+                _this.processRoadsResponse(response.data, keys, values.length);
+
+                if (values.length == 0) {
+                  //possible issue with big data due to funky javascript race conditions
+                  _this.drawRoute(keys);
+                } //draws the current user's driven path from the previous 100 coordinates
+
+
+                if (counter == rsuDataMap.size && _this.$store.getters.isFiltered == false) {
+                  _this.centerMap();
+                }
+
+                ;
+              })["catch"](function (e) {
+                console.log("snapToRoads failed due to: " + e);
+              });
+
+              if (values.length >= 100) {
+                values.splice(values.length - 100, 100);
+              } else {
+                values.splice(0, values.length);
               }
-            }).then(function (response) {
-              counter++; //response is a set of coordinates snapped to the nearest road for accuracy purposes
-
-              _this.processRoadsResponse(response.data); //after adapting code to request snapToRoads in loop, call drawRoute in last iteration (do while stuff left to request > 0)
-
-
-              _this.drawRoute(keys); //draws the current user's driven path from the previous 100 coordinates
-
-
-              if (counter == rsuDataMap.size) {
-                _this.centerMap();
-              }
-
-              ;
-            })["catch"](function (e) {
-              console.log("snapToRoads failed due to: " + e);
-            });
+            } while (values.length > 0);
           });
         }
 
@@ -19949,12 +20000,15 @@ var mainIcon = {
         console.log("getData failed due to: " + e);
       });
     },
-    processRoadsResponse: function processRoadsResponse(data) {
-      snappedCoordinates = [];
-
+    processRoadsResponse: function processRoadsResponse(data, rsu_id, remainingData) {
       for (var i = 0; i < data.snappedPoints.length; i++) {
         var latlng = new google.maps.LatLng(data.snappedPoints[i].location.latitude, data.snappedPoints[i].location.longitude);
         snappedCoordinates.push(latlng);
+      }
+
+      if (remainingData == 0) {
+        snappedCoordinatesMap.set(rsu_id, snappedCoordinates);
+        snappedCoordinates = [];
       } //sets the current user's last coordinates
 
 
@@ -19965,7 +20019,7 @@ var mainIcon = {
       var _this2 = this;
 
       polylines.set(rsu_id, new google.maps.Polyline({
-        path: snappedCoordinates,
+        path: snappedCoordinatesMap.get(rsu_id),
         strokeColor: '#000000',
         //old color: #add8e6 light blue
         strokeWeight: 4,
@@ -19992,19 +20046,32 @@ var mainIcon = {
     },
     centerMap: function centerMap() {
       if (this.$store.getters.getLocation == '') {
-        map.setCenter(markers.get(_toConsumableArray(uniqueRsuIdArray).pop()).getPosition());
+        filteredCenter = markers.get(_toConsumableArray(uniqueRsuIdArray).pop()).getPosition();
+        map.setCenter(filteredCenter);
         map.setZoom(14);
       } else {
-        geocoder.geocode({
-          'address': this.$store.getters.getLocation
-        }, function (results, status) {
-          if (status == 'OK') {
-            map.setCenter(results[0].geometry.location);
-            map.setZoom(14);
-          } else {
-            console.log('Geocode was not successful for the following reason: ' + status);
-          }
-        });
+        //console.log(this.$store.getters.getLocation);
+        if (regexExp.test(this.$store.getters.getLocation)) {
+          var coords = this.$store.getters.getLocation.split(",");
+          filteredCenter = new google.maps.LatLng(parseFloat(coords[0]), parseFloat(coords[1]));
+          map.setCenter(filteredCenter);
+          map.setZoom(14);
+          console.log("valid location");
+          return true;
+        } else {
+          console.log("invalid location");
+          return false;
+        } //previous code for centering map on the given address
+
+        /*geocoder.geocode( { 'address': this.$store.getters.getLocation}, function(results, status) {
+            if (status == 'OK') {
+                map.setCenter(results[0].geometry.location);
+                map.setZoom(14);
+            } else {
+                console.log('Geocode was not successful for the following reason: ' + status);
+            }
+        });*/
+
       }
     },
     selectMarker: function selectMarker(rsu_id) {
@@ -20054,6 +20121,10 @@ var mainIcon = {
         polylines.forEach(function (values, keys) {
           values.setMap(null);
         });
+        circles.forEach(function (circle) {
+          circle.setMap(null);
+        });
+        circles = [];
         this.getRouteData();
       }
     }
@@ -20464,7 +20535,7 @@ var _hoisted_4 = {
 var _hoisted_5 = /*#__PURE__*/_withScopeId(function () {
   return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
     "class": "sidebar-location"
-  }, [/*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", null, "Location")], -1
+  }, [/*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", null, "Location in format: lat,lng")], -1
   /* HOISTED */
   );
 });
@@ -20474,7 +20545,7 @@ var _hoisted_6 = ["placeholder"];
 var _hoisted_7 = /*#__PURE__*/_withScopeId(function () {
   return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
     "class": "sidebar-range"
-  }, [/*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", null, "Range")], -1
+  }, [/*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", null, "Range (meters)")], -1
   /* HOISTED */
   );
 });
@@ -20588,7 +20659,7 @@ var _hoisted_23 = [_hoisted_22];
 function render(_ctx, _cache, $props, $setup, $data, $options) {
   var _component_router_link = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("router-link");
 
-  return this.$store.getters.getSidebarShown ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_1, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_2, [_hoisted_3, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("nav", _hoisted_4, [_hoisted_5, (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("input", {
+  return this.$store.getters.getSidebarShown ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_1, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_2, [_hoisted_3, (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("nav", _hoisted_4, [_hoisted_5, (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("input", {
     type: "text",
     placeholder: $props.textinput_placeholder,
     "onUpdate:modelValue": _cache[0] || (_cache[0] = function ($event) {
@@ -20622,12 +20693,23 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     "class": "sidebar-end-date-time-input input"
   }, null, 512
   /* NEED_PATCH */
-  ), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $data.filter.end_date]])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
+  ), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $data.filter.end_date]])], 512
+  /* NEED_PATCH */
+  ), [[vue__WEBPACK_IMPORTED_MODULE_0__.vShow, this.$route.fullPath == '/g-p-s']]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
     "class": "sidebar-button button",
     onClick: _cache[4] || (_cache[4] = function ($event) {
       return $options.filterData();
     })
-  }, "Filter"), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("nav", _hoisted_11, [_hoisted_12, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_router_link, {
+  }, "Filter", 512
+  /* NEED_PATCH */
+  ), [[vue__WEBPACK_IMPORTED_MODULE_0__.vShow, this.$route.fullPath == '/g-p-s']]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
+    "class": "sidebar-button button",
+    onClick: _cache[5] || (_cache[5] = function ($event) {
+      return $options.resetFilter();
+    })
+  }, "Reset Filters", 512
+  /* NEED_PATCH */
+  ), [[vue__WEBPACK_IMPORTED_MODULE_0__.vShow, this.$route.fullPath == '/g-p-s']]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("nav", _hoisted_11, [_hoisted_12, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_router_link, {
     to: "/",
     "class": "sidebar-navlink"
   }, {
@@ -20667,7 +20749,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     style: {
       "cursor": "pointer"
     },
-    onClick: _cache[5] || (_cache[5] = function ($event) {
+    onClick: _cache[6] || (_cache[6] = function ($event) {
       return $options.toggleSidebar();
     })
   }, _hoisted_23)])])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true);
@@ -21385,7 +21467,7 @@ export default new Vuex.Store({
   state: {
     user: {},
     key: "",
-    adminLogged: null,
+    adminLogged: false,
     sidebarShown: false,
     filtered: false,
     filter: {
@@ -21410,7 +21492,8 @@ export default new Vuex.Store({
                       //console.log(response)
                       console.log("login success"); //state.key = response.data.access_token
 
-                      state.adminLogged = true; //payload.self.$router.push('/')
+                      state.adminLogged = true;
+                      payload.self.$router.push('/');
                     } else {
                       // self.$router.push('login')
                       console.log("login failed");
@@ -21484,6 +21567,26 @@ export default new Vuex.Store({
           }
         }, _callee4);
       }))();
+    },
+    resetFilter: function resetFilter(state, payload) {
+      return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee5() {
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                state.filtered = false;
+                state.filter.location = '';
+                state.filter.range = 300;
+                state.filter.start_date = null;
+                state.filter.end_date = null;
+
+              case 5:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5);
+      }))();
     }
   },
   actions: {},
@@ -21511,6 +21614,9 @@ export default new Vuex.Store({
     },
     isFiltered: function isFiltered(state) {
       return state.filtered;
+    },
+    getRange: function getRange(state) {
+      return state.filter.range;
     }
   },
   modules: {}
@@ -21607,7 +21713,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.sidebar-container[data-v-5b987ee1] {\r\n  width: 250px;\r\n  /*height: 100%;*/\r\n  display: flex;\r\n  flex: 1 1 auto;\r\n  position: relative;\r\n  align-items: flex-start;\r\n  flex-direction: column;\n}\n.sidebar-sidebar[data-v-5b987ee1] {\r\n  width: 100%;\r\n  height: auto;\r\n  display: flex;\r\n  flex: 1 1 auto;\r\n  position: relative;\r\n  align-items: stretch;\r\n  flex-direction: column;\r\n  justify-content: flex-start;\r\n  background-color: #303C54;\n}\n.sidebar-title[data-v-5b987ee1] {\r\n  width: 100%;\r\n  display: flex;\r\n  align-items: center;\r\n  flex-direction: column;\r\n  justify-content: center;\r\n  background-color: #111729;\n}\n.sidebar-text[data-v-5b987ee1] {\r\n  color: #ffffff;\r\n  align-self: stretch;\r\n  font-style: normal;\r\n  text-align: center;\r\n  font-weight: 700;\r\n  margin-bottom: 0px;\n}\n.sidebar-filter-options[data-v-5b987ee1] {\r\n  display: flex;\r\n  align-self: stretch;\r\n  margin-top: var(--dl-space-space-triplequarter);\r\n  align-items: stretch;\r\n  flex-direction: column;\r\n  justify-content: flex-start;\n}\n.sidebar-button[data-v-5b987ee1] {\r\n  color: #ffffff;\r\n  padding: 0px;\r\n  align-self: stretch;\r\n  margin-top: var(--dl-space-space-triplequarter);\r\n  text-align: center;\r\n  margin-left: var(--dl-space-space-tripleunit);\r\n  border-color: #111729;\r\n  border-width: 4px;\r\n  margin-right: var(--dl-space-space-tripleunit);\r\n  background-color: #303C54;\n}\n.sidebar-location[data-v-5b987ee1] {\r\n  color: #ffffff;\r\n  align-self: flex-start;\r\n  margin-left: var(--dl-space-space-halfunit);\n}\n.sidebar-location-input[data-v-5b987ee1] {\r\n  color: var(--dl-color-gray-black);\r\n  background-color: var(--dl-color-pimary-800);\n}\n.sidebar-range[data-v-5b987ee1] {\r\n  color: #ffffff;\r\n  align-self: flex-start;\r\n  margin-left: var(--dl-space-space-halfunit);\n}\n.sidebar-range-input[data-v-5b987ee1] {\r\n  color: var(--dl-color-gray-black);\r\n  background-color: var(--dl-color-pimary-800);\n}\n.sidebar-start-date-time[data-v-5b987ee1] {\r\n  color: #ffffff;\r\n  align-self: flex-start;\r\n  margin-left: var(--dl-space-space-halfunit);\n}\n.sidebar-start-date-time-input[data-v-5b987ee1] {\r\n  color: var(--dl-color-gray-black);\r\n  background-color: var(--dl-color-pimary-800);\n}\n.sidebar-end-date-time[data-v-5b987ee1] {\r\n  color: #ffffff;\r\n  align-self: flex-start;\r\n  margin-left: var(--dl-space-space-halfunit);\n}\n.sidebar-end-date-time-input[data-v-5b987ee1] {\r\n  color: var(--dl-color-gray-black);\r\n  background-color: var(--dl-color-pimary-800);\n}\n.sidebar-navigation[data-v-5b987ee1] {\r\n  width: 100%;\r\n  display: flex;\r\n  align-self: stretch;\r\n  margin-top: var(--dl-space-space-tripleunit);\r\n  align-items: stretch;\r\n  flex-direction: column;\r\n  justify-content: center;\n}\n.sidebar-text4[data-v-5b987ee1] {\r\n  color: var(--dl-color-gray-white);\r\n  align-self: stretch;\n}\n.sidebar-navlink[data-v-5b987ee1] {\r\n  display: contents;\n}\n.sidebar-container1[data-v-5b987ee1] {\r\n  display: flex;\r\n  align-self: center;\r\n  margin-top: var(--dl-space-space-halfunit);\r\n  align-items: center;\r\n  margin-bottom: var(--dl-space-space-halfunit);\r\n  flex-direction: row;\r\n  justify-content: center;\r\n  text-decoration: none;\n}\n.sidebar-icon[data-v-5b987ee1] {\r\n  fill: #D9D9D9;\r\n  width: 24px;\r\n  height: 24px;\n}\n.sidebar-heading[data-v-5b987ee1] {\r\n  color: var(--dl-color-gray-white);\r\n  width: 121px;\r\n  font-size: 0.87rem;\r\n  align-self: center;\r\n  text-align: center;\r\n  font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"Roboto\", \"Oxygen\",\"Ubuntu\", \"Cantarell\", \"Fira Sans\",\"Droid Sans\", \"Helvetica Neue\", sans-serif;\r\n  font-weight: 400;\r\n  line-height: 1.25;\r\n  padding-top: var(--dl-space-space-halfunit);\r\n  padding-bottom: var(--dl-space-space-halfunit);\n}\n.sidebar-navlink1[data-v-5b987ee1] {\r\n  display: contents;\n}\n.sidebar-container2[data-v-5b987ee1] {\r\n  display: flex;\r\n  align-self: center;\r\n  margin-top: var(--dl-space-space-halfunit);\r\n  align-items: center;\r\n  margin-bottom: var(--dl-space-space-halfunit);\r\n  flex-direction: row;\r\n  justify-content: center;\r\n  text-decoration: none;\n}\n.sidebar-icon2[data-v-5b987ee1] {\r\n  fill: #D9D9D9;\r\n  width: 24px;\r\n  height: 24px;\n}\n.sidebar-heading1[data-v-5b987ee1] {\r\n  color: var(--dl-color-gray-white);\r\n  width: 121px;\r\n  font-size: 0.87rem;\r\n  align-self: center;\r\n  text-align: center;\r\n  font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"Roboto\", \"Oxygen\",\"Ubuntu\", \"Cantarell\", \"Fira Sans\",\"Droid Sans\", \"Helvetica Neue\", sans-serif;\r\n  font-weight: 400;\r\n  line-height: 1.25;\r\n  padding-top: var(--dl-space-space-halfunit);\r\n  padding-bottom: var(--dl-space-space-halfunit);\n}\n.sidebar-container3[data-v-5b987ee1] {\r\n  display: flex;\r\n  align-self: center;\r\n  margin-top: var(--dl-space-space-halfunit);\r\n  align-items: center;\r\n  margin-bottom: var(--dl-space-space-halfunit);\r\n  flex-direction: row;\r\n  justify-content: center;\n}\n.sidebar-icon4[data-v-5b987ee1] {\r\n  fill: #D9D9D9;\r\n  width: 24px;\r\n  height: 24px;\n}\n.sidebar-heading2[data-v-5b987ee1] {\r\n  color: var(--dl-color-gray-white);\r\n  width: 121px;\r\n  font-size: 0.87rem;\r\n  align-self: center;\r\n  text-align: center;\r\n  font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"Roboto\", \"Oxygen\",\"Ubuntu\", \"Cantarell\", \"Fira Sans\",\"Droid Sans\", \"Helvetica Neue\", sans-serif;\r\n  font-weight: 400;\r\n  line-height: 1.25;\r\n  padding-top: var(--dl-space-space-halfunit);\r\n  padding-bottom: var(--dl-space-space-halfunit);\n}\n.sidebar-minimize[data-v-5b987ee1] {\r\n  flex: 1;\r\n  width: 100%;\r\n  display: flex;\r\n  align-self: stretch;\r\n  margin-top: var(--dl-space-space-fiveunits);\r\n  align-items: center;\r\n  padding-top: var(--dl-space-space-halfunit);\r\n  flex-direction: column;\r\n  padding-bottom: var(--dl-space-space-halfunit);\r\n  justify-content: center;\r\n  background-color: #111729;\r\n  bottom: 0;\r\n  position: absolute;\n}\n.sidebar-icon6[data-v-5b987ee1] {\r\n  fill: var(--dl-color-gray-white);\r\n  height: 24px;\r\n  align-self: flex-end;\n}\n@media(max-width: 767px) {\n.sidebar-sidebar[data-v-5b987ee1] {\r\n    height: 70vh;\n}\n}\r\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.sidebar-container[data-v-5b987ee1] {\n  width: 250px;\n  /*height: 100%;*/\n  display: flex;\n  flex: 1 1 auto;\n  position: relative;\n  align-items: flex-start;\n  flex-direction: column;\n}\n.sidebar-sidebar[data-v-5b987ee1] {\n  width: 100%;\n  height: auto;\n  display: flex;\n  flex: 1 1 auto;\n  position: relative;\n  align-items: stretch;\n  flex-direction: column;\n  justify-content: flex-start;\n  background-color: #303C54;\n}\n.sidebar-title[data-v-5b987ee1] {\n  width: 100%;\n  display: flex;\n  align-items: center;\n  flex-direction: column;\n  justify-content: center;\n  background-color: #111729;\n}\n.sidebar-text[data-v-5b987ee1] {\n  color: #ffffff;\n  align-self: stretch;\n  font-style: normal;\n  text-align: center;\n  font-weight: 700;\n  margin-bottom: 0px;\n}\n.sidebar-filter-options[data-v-5b987ee1] {\n  display: flex;\n  align-self: stretch;\n  margin-top: var(--dl-space-space-triplequarter);\n  align-items: stretch;\n  flex-direction: column;\n  justify-content: flex-start;\n}\n.sidebar-button[data-v-5b987ee1] {\n  color: #ffffff;\n  padding: 0px;\n  align-self: stretch;\n  margin-top: var(--dl-space-space-triplequarter);\n  text-align: center;\n  margin-left: var(--dl-space-space-tripleunit);\n  border-color: #111729;\n  border-width: 4px;\n  margin-right: var(--dl-space-space-tripleunit);\n  background-color: #303C54;\n}\n.sidebar-location[data-v-5b987ee1] {\n  color: #ffffff;\n  align-self: flex-start;\n  margin-left: var(--dl-space-space-halfunit);\n}\n.sidebar-location-input[data-v-5b987ee1] {\n  color: var(--dl-color-gray-black);\n  background-color: var(--dl-color-pimary-800);\n}\n.sidebar-range[data-v-5b987ee1] {\n  color: #ffffff;\n  align-self: flex-start;\n  margin-left: var(--dl-space-space-halfunit);\n}\n.sidebar-range-input[data-v-5b987ee1] {\n  color: var(--dl-color-gray-black);\n  background-color: var(--dl-color-pimary-800);\n}\n.sidebar-start-date-time[data-v-5b987ee1] {\n  color: #ffffff;\n  align-self: flex-start;\n  margin-left: var(--dl-space-space-halfunit);\n}\n.sidebar-start-date-time-input[data-v-5b987ee1] {\n  color: var(--dl-color-gray-black);\n  background-color: var(--dl-color-pimary-800);\n}\n.sidebar-end-date-time[data-v-5b987ee1] {\n  color: #ffffff;\n  align-self: flex-start;\n  margin-left: var(--dl-space-space-halfunit);\n}\n.sidebar-end-date-time-input[data-v-5b987ee1] {\n  color: var(--dl-color-gray-black);\n  background-color: var(--dl-color-pimary-800);\n}\n.sidebar-navigation[data-v-5b987ee1] {\n  width: 100%;\n  display: flex;\n  align-self: stretch;\n  margin-top: var(--dl-space-space-tripleunit);\n  align-items: stretch;\n  flex-direction: column;\n  justify-content: center;\n}\n.sidebar-text4[data-v-5b987ee1] {\n  color: var(--dl-color-gray-white);\n  align-self: stretch;\n}\n.sidebar-navlink[data-v-5b987ee1] {\n  display: contents;\n}\n.sidebar-container1[data-v-5b987ee1] {\n  display: flex;\n  align-self: center;\n  margin-top: var(--dl-space-space-halfunit);\n  align-items: center;\n  margin-bottom: var(--dl-space-space-halfunit);\n  flex-direction: row;\n  justify-content: center;\n  text-decoration: none;\n}\n.sidebar-icon[data-v-5b987ee1] {\n  fill: #D9D9D9;\n  width: 24px;\n  height: 24px;\n}\n.sidebar-heading[data-v-5b987ee1] {\n  color: var(--dl-color-gray-white);\n  width: 121px;\n  font-size: 0.87rem;\n  align-self: center;\n  text-align: center;\n  font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"Roboto\", \"Oxygen\",\"Ubuntu\", \"Cantarell\", \"Fira Sans\",\"Droid Sans\", \"Helvetica Neue\", sans-serif;\n  font-weight: 400;\n  line-height: 1.25;\n  padding-top: var(--dl-space-space-halfunit);\n  padding-bottom: var(--dl-space-space-halfunit);\n}\n.sidebar-navlink1[data-v-5b987ee1] {\n  display: contents;\n}\n.sidebar-container2[data-v-5b987ee1] {\n  display: flex;\n  align-self: center;\n  margin-top: var(--dl-space-space-halfunit);\n  align-items: center;\n  margin-bottom: var(--dl-space-space-halfunit);\n  flex-direction: row;\n  justify-content: center;\n  text-decoration: none;\n}\n.sidebar-icon2[data-v-5b987ee1] {\n  fill: #D9D9D9;\n  width: 24px;\n  height: 24px;\n}\n.sidebar-heading1[data-v-5b987ee1] {\n  color: var(--dl-color-gray-white);\n  width: 121px;\n  font-size: 0.87rem;\n  align-self: center;\n  text-align: center;\n  font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"Roboto\", \"Oxygen\",\"Ubuntu\", \"Cantarell\", \"Fira Sans\",\"Droid Sans\", \"Helvetica Neue\", sans-serif;\n  font-weight: 400;\n  line-height: 1.25;\n  padding-top: var(--dl-space-space-halfunit);\n  padding-bottom: var(--dl-space-space-halfunit);\n}\n.sidebar-container3[data-v-5b987ee1] {\n  display: flex;\n  align-self: center;\n  margin-top: var(--dl-space-space-halfunit);\n  align-items: center;\n  margin-bottom: var(--dl-space-space-halfunit);\n  flex-direction: row;\n  justify-content: center;\n}\n.sidebar-icon4[data-v-5b987ee1] {\n  fill: #D9D9D9;\n  width: 24px;\n  height: 24px;\n}\n.sidebar-heading2[data-v-5b987ee1] {\n  color: var(--dl-color-gray-white);\n  width: 121px;\n  font-size: 0.87rem;\n  align-self: center;\n  text-align: center;\n  font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"Roboto\", \"Oxygen\",\"Ubuntu\", \"Cantarell\", \"Fira Sans\",\"Droid Sans\", \"Helvetica Neue\", sans-serif;\n  font-weight: 400;\n  line-height: 1.25;\n  padding-top: var(--dl-space-space-halfunit);\n  padding-bottom: var(--dl-space-space-halfunit);\n}\n.sidebar-minimize[data-v-5b987ee1] {\n  flex: 1;\n  width: 100%;\n  display: flex;\n  align-self: stretch;\n  margin-top: var(--dl-space-space-fiveunits);\n  align-items: center;\n  padding-top: var(--dl-space-space-halfunit);\n  flex-direction: column;\n  padding-bottom: var(--dl-space-space-halfunit);\n  justify-content: center;\n  background-color: #111729;\n  bottom: 0;\n  position: absolute;\n}\n.sidebar-icon6[data-v-5b987ee1] {\n  fill: var(--dl-color-gray-white);\n  height: 24px;\n  align-self: flex-end;\n}\n@media(max-width: 767px) {\n.sidebar-sidebar[data-v-5b987ee1] {\n    height: 70vh;\n}\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
