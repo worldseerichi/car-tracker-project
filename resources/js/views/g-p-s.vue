@@ -22,8 +22,10 @@ var lastPosition = new Map();
 var geocoder;
 var apiKey = process.env.MIX_API_KEY;
 var uniqueRsuIdArray;
-const regexExp = /^((\-?|\+?)?\d+(\.\d+)?),\s*((\-?|\+?)?\d+(\.\d+)?)$/gi; // regex expression for checking valid latlng
+const regexExp = /^((\-?|\+?)?\d+(\.\d+)?),\s*((\-?|\+?)?\d+(\.\d+)?)$/i; // regex expression for checking valid latlng
+var coords;
 var R = 6371.0710; //radius of the earth in kilometers
+var locationRange;
 var filteredCenter;
 var circles = [];
 var selectedMarker;
@@ -104,24 +106,16 @@ export default {
                 polylines = new Map();
                 var validLocationCheck = true;
                 //console.log(response);
+
                 uniqueRsuIdArray = [...new Set(response.data.map(item => item.rsu_id))];
                 if (this.$store.getters.isFiltered) {
                     //console.log('filtered');
-                    if (this.$store.getters.getLocation != '') {
+                    locationRange = this.$store.getters.getLocation;
+                    if (locationRange != '') {
                         validLocationCheck = this.centerMap();
                     }
                     if (validLocationCheck) {
                         //console.log('valid location');
-                        const rangeCircle = new google.maps.Circle({
-                            strokeColor: "#0096FF",
-                            strokeOpacity: 0.4,
-                            strokeWeight: 2,
-                            fillOpacity: 0,
-                            map,
-                            center: filteredCenter,
-                            radius: this.$store.getters.getRange,
-                        });
-                        circles.push(rangeCircle);
                         uniqueRsuIdArray.forEach(function(rsuId) {
                             if (response.data.filter(data => data.rsu_id == rsuId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate).length > 0) {
                                 rsuDataMap.set(
@@ -131,15 +125,39 @@ export default {
                                 )
                             }
                         });
-                        rsuDataMap.forEach((values,keys)=>{
-                            console.log(values);
-                            console.log(values[0]);
-                            console.log(values[1]);
-                            console.log(values[0][0]);
-                            //check for data out of range and remove it from map
-                        });
+                        if (locationRange != '') {
+                            const rangeCircle = new google.maps.Circle({
+                                strokeColor: "#0096FF",
+                                strokeOpacity: 0.4,
+                                strokeWeight: 2,
+                                fillOpacity: 0,
+                                map,
+                                center: filteredCenter,
+                                radius: this.$store.getters.getRange,
+                            });
+                            circles.push(rangeCircle);
+                            rsuDataMap.forEach((values,keys)=>{
+                                var shortestDistance = Number.MAX_VALUE;
+                                //check for data out of range and remove it from map
+                                values.forEach((value, index)=>{
+                                    var rlat1 = value[0] * (Math.PI/180); // Convert degrees to radians
+                                    var rlat2 = parseFloat(coords[0]) * (Math.PI/180); // coords -> location filter values
+                                    var difflat = rlat2-rlat1; // Radian difference (latitudes)
+                                    var difflon = (parseFloat(coords[1])-value[1]) * (Math.PI/180); // Radian difference (longitudes)
+
+                                    var distance = 2 * R * Math.asin(Math.sqrt(Math.sin(difflat/2)*Math.sin(difflat/2)+Math.cos(rlat1)*Math.cos(rlat2)*Math.sin(difflon/2)*Math.sin(difflon/2))) * 1000; // Haversine formula
+                                    if (distance < shortestDistance) {
+                                        shortestDistance = distance;
+                                    };
+                                })
+                                if (shortestDistance > this.$store.getters.getRange) {
+                                    rsuDataMap.delete(keys);
+                                }
+                            });
+                        }
+
                     }
-                }else{
+                }else{ //no filter applied
                     uniqueRsuIdArray.forEach(function(rsuId) {
                         rsuDataMap.set(
                             rsuId,
@@ -171,7 +189,7 @@ export default {
                                 this.drawRoute(keys);
                             }
                              //draws the current user's driven path from the previous 100 coordinates
-                            if (counter == rsuDataMap.size && this.$store.getters.isFiltered == false) {
+                            if (counter == rsuDataMap.size && this.$store.getters.getLocation == '') {
                                 this.centerMap();
                             };
                         })
@@ -241,9 +259,8 @@ export default {
             map.setCenter(filteredCenter);
             map.setZoom(14);
         }else{
-            //console.log(this.$store.getters.getLocation);
             if (regexExp.test(this.$store.getters.getLocation)) {
-                var coords = this.$store.getters.getLocation.split(",");
+                coords = this.$store.getters.getLocation.split(",");
                 filteredCenter = new google.maps.LatLng(parseFloat(coords[0]), parseFloat(coords[1]));
                 map.setCenter(filteredCenter);
                 map.setZoom(14);
