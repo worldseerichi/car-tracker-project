@@ -5,6 +5,12 @@
       <div class="g-p-s-bg"></div>
     </div>
     <div class="g-p-s-container1" id="map"></div>
+    <div id="controlsDiv" style="display: flex; justify-content: space-around; width: 30%; visibility: hidden;">
+        <button id="controls" @click="playBtn()">Play</button>
+        <button id="controls" @click="pauseBtn()">Pause</button>
+        <button id="controls" @click="stopBtn()">Stop</button>
+        <!--<button id="controls" @click="rewindBtn()">Rewind</button>-->
+    </div>
   </div>
 </template>
 
@@ -17,6 +23,8 @@ var map;
 /*var controlDiv;
 var controlUI;
 var controlText;*/
+var controls;
+var timers = new Map();
 var snappedCoordinates = [];
 var lastPosition = new Map();
 var geocoder;
@@ -33,6 +41,7 @@ var selectedPolyline;
 var markers = new Map();
 var polylines = new Map();
 var rsuDataMap = new Map();
+var rsuDataMapCopy = new Map();
 var snappedCoordinatesMap = new Map();
 var snappedCoordinates = [];
 var counter = 0;
@@ -167,10 +176,13 @@ export default {
                     });
                 }
 
+                //copy of rsuDataMap for use in animations
+                rsuDataMapCopy = new Map(JSON.parse(
+                    JSON.stringify(Array.from(rsuDataMap)) //copies map and disconnects from original map
+                ));
+
                 //if rsuDataMap.size is 0, show toast message about no data found
 
-                //path = response.data.map(function (data) { return [data.latitude, data.longitude]; });
-                //console.log(path);
                 //snapToRoads takes up to 100 GPS points, current position plus 99 previous positions (slice)
                 counter = 0;
                 rsuDataMap.forEach((values,keys)=>{
@@ -189,8 +201,14 @@ export default {
                                 this.drawRoute(keys);
                             }
                              //draws the current user's driven path from the previous 100 coordinates
-                            if (counter == rsuDataMap.size && this.$store.getters.getLocation == '') {
-                                this.centerMap();
+                            if (counter == rsuDataMap.size) {
+                                if (this.$store.getters.getLocation == '') {
+                                    this.centerMap();
+                                };
+                                rsuDataMapCopy.forEach((values,keys)=>{
+                                    timers.set(keys, null);
+                                });
+                                controls.style.visibility = 'visible';
                             };
                         })
                         .catch(e => {
@@ -301,13 +319,126 @@ export default {
             selectedMarker = markers.get(rsu_id);
         };
     },
+
+    playBtn(){
+        rsuDataMapCopy.forEach((values,keys)=>{
+            if (!timers.get(keys)) {
+                //line.getPath().clear();
+                this.recursiveAnimate(0, keys);
+
+            } else {
+                timers.get(keys).resume();
+            }
+        });
+    },
+
+    pauseBtn(){
+        rsuDataMapCopy.forEach((values,keys)=>{
+            timers.get(keys) && timers.get(keys).pause();
+        });
+    },
+
+    stopBtn(){
+        rsuDataMapCopy.forEach((values,keys)=>{
+            timers.get(keys) && timers.get(keys).cancel();
+            timers.set(keys, null);
+            //line.setPath(pathCoords)
+        });
+    },
+
+    recursiveAnimate(index, rsu_id) {
+        timers.get(rsu_id) && timers.get(rsu_id).cancel()
+        //var coordsDeparture = pathCoords[index];
+        //var coordsArrival = pathCoords[index + 1];
+        var rsuCoords = rsuDataMapCopy.get(rsu_id);
+        var currentThis = this;
+        var departure = new google.maps.LatLng(rsuCoords[index][0], rsuCoords[index][1]); //Set to whatever lat/lng you need for your departure location
+        var arrival = new google.maps.LatLng(rsuCoords[index+1][0], rsuCoords[index+1][1]); //Set to whatever lat/lng you need for your arrival location
+        var lastStop = new google.maps.LatLng(rsuCoords[rsuCoords.length-1][0], rsuCoords[rsuCoords.length-1][1]);
+        var step = 0;
+        var numSteps = 200; //Change this to set animation resolution
+        var timePerStep = 8; //Change this to alter animation speed
+        timers.set(rsu_id, this.InvervalTimer(function(arg) {
+            step += 1;
+            if (step > numSteps) {
+            //clearInterval(interval);
+            step = 0
+            timers.get(rsu_id).cancel()
+            if (index < rsuCoords.length - 2) {
+                currentThis.recursiveAnimate(index + 1, rsu_id)
+            }
+            } else {
+            var are_we_there_yet = google.maps.geometry.spherical.interpolate(departure, arrival, step / numSteps);
+            //line.getPath().push(are_we_there_yet);
+            currentThis.moveMarker(map, markers.get(rsu_id), departure, are_we_there_yet);
+            }
+        }, timePerStep));
+    },
+
+    moveMarker(map, marker, departure, currentMarkerPos) {
+        marker.setPosition(currentMarkerPos);
+        //map.panTo(currentMarkerPos);
+        var heading = google.maps.geometry.spherical.computeHeading(departure, currentMarkerPos);
+        marker.getIcon().rotation = heading;
+        marker.setIcon(marker.getIcon());
+    },
+
+    InvervalTimer(callback, interval, arg) {
+        //console.log(timer)
+        var timerId, startTime, remaining = 0;
+        var state = 0; //  0 = idle, 1 = running, 2 = paused, 3= resumed
+        var timeoutId;
+        this.pause = function() {
+            if (state != 1) return;
+
+            remaining = interval - (new Date() - startTime);
+            window.clearInterval(timerId);
+            state = 2;
+        };
+
+        this.resume = function() {
+            if (state != 2) return;
+
+            state = 3;
+            //console.log(remaining)
+            timeoutId = window.setTimeout(this.timeoutCallback, remaining, arg);
+        };
+
+        this.timeoutCallback = function(timer) {
+            if (state != 3) return;
+                clearTimeout(timeoutId);
+            startTime = new Date();
+            timerId = window.setInterval(function() {
+            callback(this.arg)
+            }, interval);
+            state = 1;
+        };
+
+        this.cancel = function() {
+            clearInterval(timerId)
+        }
+        startTime = new Date();
+        timerId = window.setInterval(function() {
+            callback(arg)
+        }, interval);
+        state = 1;
+        return {
+            cancel: this.cancel,
+            pause: this.pause,
+            resume: this.resume,
+            timeoutCallback: this.timeoutCallback
+        };
+    },
   },
+
   mounted() {
     this.initMap();
+    controls = document.getElementById('controlsDiv');
   },
   watch: {
     '$store.state.filter': {deep: true,
         handler() {
+            controls.style.visibility = 'hidden';
             //console.log("filter changed");
             markers.forEach((values,keys)=>{
               values.setMap(null);
@@ -319,6 +450,7 @@ export default {
                 circle.setMap(null);
             });
             circles = [];
+            timers = new Map();
             this.getRouteData();
         }
     }
@@ -371,10 +503,17 @@ export default {
   margin-top: -13.5rem;
   align-items: center;
   border-radius: var(--dl-radius-radius-radius75);
-  margin-bottom: var(--dl-space-space-tripleunit);
+  /*margin-bottom: var(--dl-space-space-tripleunit);*/
   flex-direction: column;
   justify-content: center;
   background-color: var(--dl-color-gray-white);
+}
+#controls {
+    background-color: white;
+    color: black;
+    border: 2px solid #008CBA;
+    width: 100%;
+    margin: 2px;
 }
 </style>
 
