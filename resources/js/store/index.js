@@ -22,6 +22,7 @@ export default createStore({
     state:{
         user: {},
         key: "",
+        randomBoolean: false,
         adminLogged: false,
         sidebarShown: false,
         filtered: false,
@@ -54,7 +55,7 @@ export default createStore({
                           console.log(error);
                       });
 
-              })
+            })
         },
         async storeLogout(state,payload){
             axios.post('signout').then(response => {
@@ -66,6 +67,9 @@ export default createStore({
         },
         async toggleSidebar(state,payload){
             state.sidebarShown = !state.sidebarShown;
+        },
+        async toggleRandomBoolean(state,payload){
+            state.randomBoolean = !state.randomBoolean;
         },
         async filterData(state,payload){
             state.filtered = true;

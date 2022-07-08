@@ -21,6 +21,13 @@ export default {
   },
   methods: {
 
+  },
+  watch: {
+    '$store.state.adminLogged': {
+        handler() {
+            this.$store.commit('toggleRandomBoolean'); //fixes bug with adminLogged state not commiting to store
+        }
+    }
   }
 }
 </script>
