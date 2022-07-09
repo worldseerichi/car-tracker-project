@@ -123,7 +123,7 @@ export default {
                     if (locationRange != '') {
                         validLocationCheck = this.centerMap();
                     }
-                    if (validLocationCheck) {
+                    if (validLocationCheck && this.$store.getters.getRange > 0) {
                         //console.log('valid location');
                         uniqueRsuIdArray.forEach(function(rsuId) {
                             if (response.data.filter(data => data.rsu_id == rsuId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate).length > 0) {

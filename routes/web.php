@@ -27,6 +27,7 @@ Route::get('/register-accounts', [MapsController::class, 'index']);
 
 //tracking data
 Route::get('/getData', [MapsController::class, 'getData']);
+Route::get('/getDataFiltered', [MapsController::class, 'getDataFiltered']);
 //Route::get('/getAdjacentData', [MapsController::class, 'getAdjacentData']);
 
 //post tracking data

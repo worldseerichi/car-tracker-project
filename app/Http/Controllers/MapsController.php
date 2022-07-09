@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Rsu;
 use App\Models\TrackingData;
+use \DateTime;
 
 class MapsController extends Controller
 {
@@ -41,6 +42,69 @@ class MapsController extends Controller
         };
 
         return $data;
+    }
+
+    public function getDataFiltered(Request $request)
+    {
+        $request->validate([
+            'location' => 'required|string',
+            'range' => 'required|numeric',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date',
+        ]);
+        $locationCheck = preg_match('/^((\-?|\+?)?\d+(\.\d+)?),\s*((\-?|\+?)?\d+(\.\d+)?)$/i', $request->input('location'));
+        if (!$locationCheck) {
+            return 'Invalid location. Ensure it is in the format "lat,lng" and that the coordinates are valid.';
+        }
+        $location = explode(',', $request->input('location'));
+
+        $range = $request->input('range');
+        if ($range <= 0) {
+            return 'Invalid range. Ensure it is greater than 0.';
+        }
+
+        $start = new DateTime($request->input('start_date'));
+        $end = new DateTime($request->input('end_date'));
+
+        $data = TrackingData::whereBetween('recorded_at', [$start, $end])->get();
+        if(count($data) == 0){
+            return 'No data found';
+        };
+        $rsus = TrackingData::select('rsu_id')->distinct()->get();
+        $rsuData = [];
+
+        foreach ($rsus as $value) {
+            $rsuData[$value['rsu_id']] = $data->filter(function($data) use ($value)
+            {
+               return $data->rsu_id == $value['rsu_id'];
+            });
+        };
+
+        $earthRadius = 6371000; //meters
+
+        foreach ($rsuData as $key => $values) {
+            $shortestDistance = 6371000;
+            foreach ($values as $data) {
+                $latFrom = deg2rad(floatval($location[0]));
+                $lonFrom = deg2rad(floatval($location[1]));
+                $latTo = deg2rad($data->latitude);
+                $lonTo = deg2rad($data->longitude);
+
+                $latDelta = $latTo - $latFrom;
+                $lonDelta = $lonTo - $lonFrom;
+
+                $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) + cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+                $distance = $angle * $earthRadius; //haversine formula
+                if ($distance < $shortestDistance) {
+                    $shortestDistance = $distance;
+                }
+            }
+            if ($shortestDistance > $range) {
+                unset($rsuData[$key]);
+            }
+        }
+
+        return $rsuData;
     }
 
     /*public function getAdjacentData(){
