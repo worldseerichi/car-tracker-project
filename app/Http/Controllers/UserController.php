@@ -12,9 +12,11 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::all();
+        $users = User::withTrashed()->all();
+        //return response()->json($users);*/
+        
         return response()->json($users);
     }
 
@@ -93,7 +95,7 @@ class UserController extends Controller
         $user = User::find($id);
         $user->delete();
 
-        return response()->json("User Successfully Deleted");
+        return "User Successfully Deleted";
     }
 
     public function registrationRequest(Request $request)
@@ -116,5 +118,30 @@ class UserController extends Controller
         Rsu::create(['user_id' => $check['id']]);
 
         return 'User created';
+    }
+
+    public function restore($id)
+    {
+        User::withTrashed()->find($id)->restore();
+  
+        return "User Sucessfully Restored";
+    }  
+     /**
+     * restore all post
+     *
+     * @return response()
+     */
+    public function restoreAll()
+    {
+        User::onlyTrashed()->restore();
+  
+        return redirect()->back();
+    }
+   
+    public function forceDelete($id) 
+    {
+        User::where('id', $id)->withTrashed()->forceDelete();
+
+        return "shitbro";
     }
 }

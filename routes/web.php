@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MapsController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Auth;
@@ -28,7 +29,7 @@ Route::get('/register-accounts', [MapsController::class, 'index']);
 //tracking data
 Route::get('/getData', [MapsController::class, 'getData']);
 Route::get('/getDataFiltered', [MapsController::class, 'getDataFiltered']);
-Route::get('/getDataCounted', [MapsController::class, 'getDataCounted']);
+Route::get('/getDataCounted', [MapsController::class, 'getDataCounted'])->withTrashed();
 //Route::get('/getAdjacentData', [MapsController::class, 'getAdjacentData']);
 
 //post tracking data
@@ -38,9 +39,9 @@ Route::post('/postDataBatch', [MapsController::class, 'postDataBatch']);
 //csrf token
 Route::get('/getToken', [MapsController::class, 'getToken']);
 
-Route::resource('users','UserController');
-Route::resource('rsus','RsuController');
-Route::resource('trackingdata','TrackingDataController');
+//Route::resource('users','UserController');
+//Route::resource('rsus','RsuController');
+//Route::resource('trackingdata','TrackingDataController');
 
 //auth
 Route::post('login-request', [AuthController::class, 'loginRequest'])->name('login-request');
@@ -51,3 +52,9 @@ Route::post('signout', [AuthController::class, 'signOut'])->name('signout');
 //Auth::routes();
 
 //Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+ // Soft Delete
+
+//Route::get('usersAll', [UserController::class, 'index'])->name('users.index');
+//Route::delete('users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
+Route::delete('users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
+Route::get('users/restore/{id}', [UserController::class, 'restore'])->name('users.restore');

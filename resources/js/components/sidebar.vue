@@ -136,10 +136,10 @@ export default {
             this.filter.end_date = now.toISOString().slice(0, 16);
         },
         exportFilters(){
-           this.downloadObjectAsJson({ Coordinates: this.filter.location ,Range : this.filter.range, Start_Date: this.filter.start_date,End_Date: this.filter.end_date} ,"FilterValues");
+           this.downloadObjectAsJson({ location: this.filter.location ,range: this.filter.range, start_date: this.filter.start_date,end_date: this.filter.end_date} ,"FilterValues");
         },
         downloadObjectAsJson(exportObj, exportName){
-          var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj,null,2));
+          var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj,null,4));
           var downloadAnchorNode = document.createElement('a');
           downloadAnchorNode.setAttribute("href",     dataStr);
           downloadAnchorNode.setAttribute("download", exportName + ".json");

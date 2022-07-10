@@ -20,6 +20,7 @@
           <thead>
             <tr >
               <th scope="col">User ID</th>
+              <th scope="col">Username</th>
               <th scope="col">Quantity Of Tracking Data</th>
               <th scope="col">Created At</th>
               <th scope="col">Actions</th>
@@ -28,11 +29,14 @@
           <tbody>
             <tr v-for="(s,index) in s" :key="index">
                <th>{{s[0]}}</th>
+               <th>{{s[1][3][0]}}</th>
                <th v-if="s[1][1]!= null">{{s[1][1]}}</th><th v-else>0</th>
                <th>{{s[1][0][0].substring(0,s[1][0][0].indexOf('T'))}}</th>
-               <th><button type="button" class="btn btn-link btn-sm px-3" data-ripple-color="dark">
+               <th v-if="s[1][2][0]==NULL"><button type="button" @click="this.softdelete(s[0])" class="btn btn-link btn-sm px-3" data-ripple-color="dark">
                   Delete
-                </button></th>  
+                </button></th><th v-else><button type="button" @click="this.restore(s[0])" class="btn btn-link btn-sm px-3" data-ripple-color="dark">
+                  Restore
+                </button></th>
               <!--@click="update(data)"  + data.index-->
             </tr>
           </tbody>
@@ -146,6 +150,7 @@ export default {
                         .map(function (data) { return data.id; })
                         )
                       });
+                  console.log(userRsuMap);
                   const object = response.data['requestamounts'][0]
 
                   for (const property in object) {rsuAmount.set(property,object[property])}
@@ -158,9 +163,15 @@ export default {
                         [
                           response.data["users"].filter(data => data.id == userId)
                           .map(function (data) { return data.created_at; }),
-                           rsuAmount.get(String(first))
+                          rsuAmount.get(String(first)),
+                          response.data["users"].filter(data => data.id == userId)
+                          .map(function (data) { return data.deleted_at; }),
+                          response.data["users"].filter(data => data.id == userId)
+                          .map(function (data) { return data.username; })
+                          
                         ])
                   });
+                  console.log(userDataMap);
                 //console.log(userDataMap);
                 //console.log(Array.from(userDataMap))
                 this.s = Array.from(userDataMap)
@@ -175,18 +186,50 @@ export default {
         this.index +=1;
     },
     register: function () {
+            var self = this;
             axios.post('registration-request', { username: this.username, password: this.password })
                 .then(function (response) {
                     console.log(response);
-                    //implement something to tell the user an account was created
+                    //implement something to tell the user an account was created~
+                    self.getTabledata();
                 })
                 .catch(function (error) {
                     console.log(error);
                     console.log('erro no registo');
                 });
-              console.log(this. forceRender());
     
-        }
+        },
+    softdelete(userId){
+      var self = this;
+      console.log(userId);
+      axios.delete('users/'+userId)
+                .then(function (response) {
+                    console.log(response);
+                    self.getTabledata();
+                    //implement something to tell the user an account was created
+                })
+                .catch(function (error) {
+                    console.log(error);
+                    console.log('erro no soft delete');
+                });
+            
+    },
+    restore(userId){
+      var self = this;
+      console.log(userId);
+      axios.get('users/restore/'+userId)
+                .then(function (response) {
+                    console.log(response);
+                    self.getTabledata();
+                    //implement something to tell the user an account was created
+                })
+                .catch(function (error) {
+                    console.log(error);
+                    console.log('erro no soft delete');
+                });
+        
+            
+    }   
   },
   mounted(){
     this.getTabledata();
@@ -265,7 +308,7 @@ export default {
 .g-p-s1-text01 {
   color: #000000;
   font-size: 0.9rem;
-  align-self: stretch;
+  align-self: center;
   font-style: normal;
   font-weight: 700;
   padding-top: 0.3rem;

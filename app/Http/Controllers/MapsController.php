@@ -154,7 +154,7 @@ class MapsController extends Controller
         }  
         
         
-        $users = User::where('is_admin', 0)->get();
+        $users = User::withTrashed()->where('is_admin', 0)->get();
         return array('requestamounts' => array($QntOfDataAPI), 'rsus' => $rsus, 'users' => $users);
     }
      

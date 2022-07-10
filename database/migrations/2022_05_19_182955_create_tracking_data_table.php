@@ -29,6 +29,7 @@ return new class extends Migration
             $table->foreignId('rsu_id')->constrained('rsus');
             $table->timestamp('recorded_at')->useCurrent();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
