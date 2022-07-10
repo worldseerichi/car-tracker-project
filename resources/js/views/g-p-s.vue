@@ -18,11 +18,15 @@
 import AppHeader from '../components/header'
 //import '@coreui/coreui/dist/css/coreui.min.css'
 import axios from 'axios';
-
 var map;
 /*var controlDiv;
 var controlUI;
 var controlText;*/
+// Button For Inside Of Map
+var controlUI;
+var controlDiv;
+var controlText;
+//
 var controls;
 var timers = new Map();
 var snappedCoordinates = [];
@@ -97,8 +101,34 @@ export default {
                 }
             };
         map = new google.maps.Map(document.getElementById("map"), mapOptions); //creates and initializes the map
+        const centerFilterControl = this.giveButton(map);
+        map.controls[google.maps.ControlPosition.TOP_CENTER].push(centerFilterControl);
         geocoder = new google.maps.Geocoder();
         this.getRouteData();
+    },
+     giveButton(map){       // Add Button Export To Google Map
+      controlDiv = document.createElement('div');
+      controlUI = document.createElement('div');
+      controlText = document.createElement('div');
+      controlUI.style.backgroundColor = '#fff';
+      controlUI.style.border = '2px solid #ebebeb';
+      controlUI.style.borderRadius = '15px';
+      controlUI.style.padding = '10px';
+      controlUI.title = 'Export';
+      controlDiv.appendChild(controlUI);  
+      controlText.style.fontSize = '16px';
+      controlText.style.textAlign = 'center';
+      controlText.style.lineHeight = '20px';
+      controlText.style.color = '#333';
+      controlText.innerHTML = 'Export';
+      controlUI.appendChild(controlText);
+
+      controlDiv.addEventListener('click',() => {
+            // Chamar aqui funcao para executar o export
+            console.log("IM ALIVE");
+      });
+      
+      return controlDiv;
     },
 
     getRouteData() {
