@@ -143,14 +143,15 @@ export default {
   background-color: var(--dl-color-gray-black);
 }
 .login-container1 {
-  width: 85%;
-  height: 623px;
+  flex: inital;
+  width: 548px;
+  height: 566px;
   display: flex;
   z-index: 100;
   box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1),0 10px 10px -5px rgba(0,0,0,0.04);
   margin-top: -12rem;
   align-items: flex-start;
-  border-radius: var(--dl-radius-radius-radius75);
+  border-radius: 15%;
   margin-bottom: var(--dl-space-space-tripleunit);
   flex-direction: column;
   background-color: var(--dl-color-gray-white);
@@ -172,14 +173,11 @@ export default {
 }
 .login-container4 {
   width: 100%;
-  height: 415px;
+  height: 398px;
   display: flex;
   position: relative;
-  margin-top: 4.5rem;
+  margin-top: 5.5rem;
   align-items: flex-end;
-  border-color: var(--dl-color-gray-900);
-  border-style: dashed;
-  border-width: 2px;
   margin-bottom: 20rem;
   flex-direction: column;
   justify-content: flex-end;
@@ -252,16 +250,17 @@ export default {
   width: 179px;
   height: 62px;
   align-self: center;
-  padding-top: var(--dl-space-space-halfunit);
+  padding-top: 10px;
   padding-left: var(--dl-space-space-unit);
   margin-bottom: var(--dl-space-space-doubleunit);
   padding-right: var(--dl-space-space-unit);
-  padding-bottom: var(--dl-space-space-halfunit);
+  padding-bottom: 10px;
   background-color: #e85454;
 }
 .login-text11 {
   color: #000000;
   font-style: normal;
+  text-align: center;
   font-weight: 700;
 }
 </style>

@@ -5,8 +5,41 @@
     </div>
     <div class="g-p-s1-container1">
       <span class="g-p-s1-text">User Managment</span>
+      <button @click="this.getTabledata" class="g-p-s1-button button">
+        <span class="g-p-s1-text01">
+          <span class="g-p-s1-text02">Refresh</span>
+          <br />
+          <span></span>
+        </span>
+      </button>
+      
     </div>
-    <div class="g-p-s1-container2"></div>
+    <div class="g-p-s1-container2" style="overflow:scroll;height:300px;width:100%;overflow:auto">
+      
+      <table class="table table-bordered align-middle">
+          <thead>
+            <tr >
+              <th scope="col">User ID</th>
+              <th scope="col">Quantity Of Tracking Data</th>
+              <th scope="col">Created At</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(s,index) in s" :key="index">
+               <th>{{s[0]}}</th>
+               <th v-if="s[1][1]!= null">{{s[1][1]}}</th><th v-else>0</th>
+               <th>{{s[1][0][0].substring(0,s[1][0][0].indexOf('T'))}}</th>
+               <th><button type="button" class="btn btn-link btn-sm px-3" data-ripple-color="dark">
+                  Delete
+                </button></th>  
+              <!--@click="update(data)"  + data.index-->
+            </tr>
+          </tbody>
+      </table>
+
+    </div>
+    <form @submit.prevent="register()">
     <div class="g-p-s1-container3">
       <span class="g-p-s1-text01">Create new User</span>
       <div class="g-p-s1-container4">
@@ -15,10 +48,16 @@
             username :
             <span v-html="raw04vt"></span>
           </span>
+          
         </label>
         <input
           type="text"
-          placeholder="placeholder"
+          placeholder="username"
+          id="username"
+          name="username"
+          v-model="username"
+          required
+          autofocus
           class="g-p-s1-textinput input"
         />
       </div>
@@ -30,12 +69,16 @@
           </span>
         </label>
         <input
-          type="text"
-          placeholder="placeholder"
+          type="password"
+          placeholder="password"
+          id="password"
+          name="password"
+          v-model="password"
+          required
           class="g-p-s1-textinput1 input"
         />
       </div>
-      <button class="g-p-s1-button button">
+      <button type="submit" class="g-p-s1-button2 button">
         <span class="g-p-s1-text06">
           <span class="g-p-s1-text07">Create Account</span>
           <br />
@@ -43,25 +86,35 @@
         </span>
       </button>
     </div>
+    </form>
   </div>
+  
 </template>
 
 <script>
 import AppHeader from '../components/header'
-
+import "bootstrap/dist/js/bootstrap.js";
+import "bootstrap/dist/css/bootstrap.min.css";
+import axios from 'axios';
 export default {
   name: 'GPS1',
   components: {
     AppHeader,
   },
 
-  data() {
+  data : function() {
     return {
       raw04vt: ' ',
       rawa29k: ' ',
+      accounts:[],
+      positions:[],
+      s:[],
+      username: '',
+      password: '',
+      
+      fields:['#','Quantity Of API Requests','Created At','Actions'],
     }
   },
-
   metaInfo: {
     title: 'GPS1 - Car_Tracker_V1',
     meta: [
@@ -71,10 +124,94 @@ export default {
       },
     ],
   },
+  methods:{
+     getTabledata: function(){
+        axios.get('/getDataCounted').then(response => {
+            //console.log(response);
+            //response will be path coordinates of current logged in user
+            if(response.data == 'No data found'){
+                console.log(response.data);
+                
+            }else{
+                  var uniqueUserIdArray;
+                  var userDataMap = new Map();
+                  var userRsuMap = new Map();
+                  var rsuAmount = new Map();
+                  uniqueUserIdArray = [...new Set(response.data["users"].map(item => item.id))];
+
+                  uniqueUserIdArray.forEach(function(userId) {
+                    userRsuMap.set(
+                        userId,
+                        response.data["rsus"].filter(data => data.user_id == userId)
+                        .map(function (data) { return data.id; })
+                        )
+                      });
+                  const object = response.data['requestamounts'][0]
+
+                  for (const property in object) {rsuAmount.set(property,object[property])}
+                
+                  uniqueUserIdArray.forEach(function(userId) {
+
+                  const first = [...userRsuMap.get(userId)][0]
+                    userDataMap.set(
+                      userId,
+                        [
+                          response.data["users"].filter(data => data.id == userId)
+                          .map(function (data) { return data.created_at; }),
+                           rsuAmount.get(String(first))
+                        ])
+                  });
+                //console.log(userDataMap);
+                //console.log(Array.from(userDataMap))
+                this.s = Array.from(userDataMap)
+                }
+      })
+        .catch(e => {
+            console.log("getData failed due to: " + e);
+        });
+    
+    },
+    forceRender(){
+        this.index +=1;
+    },
+    register: function () {
+            axios.post('registration-request', { username: this.username, password: this.password })
+                .then(function (response) {
+                    console.log(response);
+                    //implement something to tell the user an account was created
+                })
+                .catch(function (error) {
+                    console.log(error);
+                    console.log('erro no registo');
+                });
+              console.log(this. forceRender());
+    
+        }
+  },
+  mounted(){
+    this.getTabledata();
+  },
+  created() {
+
+        
+  }
 }
 </script>
-
 <style scoped>
+.g-p-s1-button2 {
+  width: 201px;
+  height: 45px;
+  display: flex;
+  position: relative;
+  align-self: center;
+  text-align: center;
+  align-items: center;
+  padding-top: 0px;
+  flex-direction: row;
+  padding-bottom: 0px;
+  justify-content: center;
+  background-color: #61ea5c;
+}
 .g-p-s1-container {
   width: 100%;
   height: auto;
@@ -99,8 +236,8 @@ export default {
   width: 100%;
   height: 100px;
   display: flex;
-  align-items: stretch;
-  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 .g-p-s1-text {
   color: var(--dl-color-gray-black);
@@ -110,6 +247,35 @@ export default {
   text-align: center;
   font-weight: 700;
   text-transform: capitalize;
+}
+.g-p-s1-button {
+  width: 72px;
+  height: 39px;
+  display: flex;
+  position: relative;
+  align-self: center;
+  text-align: center;
+  align-items: center;
+  padding-top: 0px;
+  flex-direction: row;
+  padding-bottom: 0px;
+  justify-content: center;
+  background-color: #61ea5c;
+}
+.g-p-s1-text01 {
+  color: #000000;
+  font-size: 0.9rem;
+  align-self: stretch;
+  font-style: normal;
+  font-weight: 700;
+  padding-top: 0.3rem;
+  padding-left: 1.3rem;
+  padding-right: 1.3rem;
+  padding-bottom: 0.3rem;
+}
+.g-p-s1-text02 {
+  font-style: normal;
+  font-weight: 400;
 }
 .g-p-s1-container2 {
   width: 100%;
@@ -126,7 +292,7 @@ export default {
   align-items: flex-start;
   flex-direction: column;
 }
-.g-p-s1-text01 {
+.g-p-s1-text05 {
   color: var(--dl-color-gray-black);
   font-size: 1.2rem;
   align-self: center;
@@ -141,12 +307,12 @@ export default {
   height: auto;
   display: flex;
   align-self: center;
-  margin-top: 5px;
+  margin-top: 15px;
   align-items: flex-start;
   margin-bottom: 5px;
   justify-content: flex-start;
 }
-.g-p-s1-text02 {
+.g-p-s1-text06 {
   color: #000000;
   font-size: 1rem;
   align-self: center;
@@ -169,10 +335,10 @@ export default {
   align-self: center;
   align-items: flex-start;
   padding-top: 5px;
-  padding-bottom: 5px;
+  padding-bottom: 25px;
   justify-content: center;
 }
-.g-p-s1-text04 {
+.g-p-s1-text08 {
   color: #000000;
   font-size: 1rem;
   align-self: center;
@@ -187,9 +353,9 @@ export default {
   align-self: center;
   text-align: center;
 }
-.g-p-s1-button {
-  width: 274px;
-  height: 54px;
+.g-p-s1-button1 {
+  width: 201px;
+  height: 45px;
   display: flex;
   position: relative;
   align-self: center;
@@ -201,9 +367,9 @@ export default {
   justify-content: center;
   background-color: #61ea5c;
 }
-.g-p-s1-text06 {
+.g-p-s1-text10 {
   color: #000000;
-  font-size: 0.7rem;
+  font-size: 0.9rem;
   align-self: stretch;
   font-style: normal;
   font-weight: 700;
@@ -212,7 +378,7 @@ export default {
   padding-right: 1.3rem;
   padding-bottom: 0.3rem;
 }
-.g-p-s1-text07 {
+.g-p-s1-text11 {
   font-style: normal;
   font-weight: 400;
 }

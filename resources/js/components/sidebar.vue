@@ -31,9 +31,11 @@
           v-model="filter.end_date"
           class="sidebar-end-date-time-input input"
         />
+        
       </nav>
       <button class="sidebar-button button" @click="filterData()" v-show="this.$route.fullPath == '/g-p-s'">Filter</button>
       <button class="sidebar-button button" @click="resetFilter()" v-show="this.$route.fullPath == '/g-p-s'">Reset Filters</button>
+      <button class="sidebar-button button" @click="exportFilters()" v-show="this.$route.fullPath == '/g-p-s'">Export Filters</button>
       <nav class="sidebar-navigation">
         <span class="sidebar-text4 textSM">Navigation links:</span>
         <router-link to="/" class="sidebar-navlink">
@@ -132,6 +134,18 @@ export default {
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             this.filter.start_date = now.toISOString().slice(0, 16);
             this.filter.end_date = now.toISOString().slice(0, 16);
+        },
+        exportFilters(){
+           this.downloadObjectAsJson({ Coordinates: this.filter.location ,Range : this.filter.range, Start_Date: this.filter.start_date,End_Date: this.filter.end_date} ,"FilterValues");
+        },
+        downloadObjectAsJson(exportObj, exportName){
+          var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj,null,2));
+          var downloadAnchorNode = document.createElement('a');
+          downloadAnchorNode.setAttribute("href",     dataStr);
+          downloadAnchorNode.setAttribute("download", exportName + ".json");
+          document.body.appendChild(downloadAnchorNode); // required for firefox
+          downloadAnchorNode.click();
+          downloadAnchorNode.remove();
         }
   },
   mounted() {

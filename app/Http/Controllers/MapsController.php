@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Collection;
 use App\Models\User;
 use App\Models\Rsu;
 use App\Models\TrackingData;
@@ -134,6 +135,29 @@ class MapsController extends Controller
         })->values();
         return $lastCoordsRsus;
     }*/
+
+    public function getDataCounted(){
+        //amount TrackingData::count();
+        $QntOfDataAPI = [];
+        $rsus = Rsu::get();
+        $rsusCounter = count(TrackingData::select('rsu_id')->distinct()->get());
+        $data = TrackingData::get();
+        if(count($data) == 0){
+            return 'No data found';
+        };
+        if($rsusCounter==0){
+            $QntOfDataAPI = "Empty";
+        }else{
+            for ($i = 1; $i <= $rsusCounter; $i++) {
+                $QntOfDataAPI[$i] = count(TrackingData::where("rsu_id", $i )->get());
+            }
+        }  
+        
+        
+        $users = User::where('is_admin', 0)->get();
+        return array('requestamounts' => array($QntOfDataAPI), 'rsus' => $rsus, 'users' => $users);
+    }
+     
 
     public function getToken(Request $request){
         //return csrf_token();
