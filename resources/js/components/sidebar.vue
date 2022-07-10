@@ -37,17 +37,7 @@
       <button class="sidebar-button button" @click="resetFilter()" v-show="this.$route.fullPath == '/g-p-s'">Reset Filters</button>
       <button class="sidebar-button button" @click="exportFilters()" v-show="this.$route.fullPath == '/g-p-s'">Export Filters</button>
       <nav class="sidebar-navigation">
-        <span class="sidebar-text4 textSM">Navigation links:</span>
-        <router-link to="/" class="sidebar-navlink">
-          <div class="sidebar-container1">
-            <svg viewBox="0 0 1024 1024" class="sidebar-icon">
-              <path
-                d="M426 854h-212v-342h-128l426-384 426 384h-128v342h-212v-256h-172v256z"
-              ></path>
-            </svg>
-            <h1 class="sidebar-heading" style="margin-top: 10px">{{ heading1 }}</h1>
-          </div>
-        </router-link>
+        <span style="width: 100%;text-align: center" class="sidebar-text4 textSM ">Navigation links:</span>
         <router-link to="/g-p-s" class="sidebar-navlink1">
           <div class="sidebar-container2">
             <svg viewBox="0 0 1024 1024" class="sidebar-icon2">
@@ -58,8 +48,19 @@
             <h1 class="sidebar-heading1" style="margin-top: 10px">{{ heading11 }}</h1>
           </div>
         </router-link>
-        <router-link to="/login">
+        <router-link to="/register-accounts" v-if="this.$store.getters.getAdminLogged">
             <div class="sidebar-container3">
+                <svg viewBox="0 0 1024 1024" class="sidebar-icon4">
+                    <path
+                    d="M512 0c282.857 0 512 229.143 512 512 0 281.143-228 512-512 512-283.429 0-512-230.286-512-512 0-282.857 229.143-512 512-512zM865.714 772c53.143-73.143 85.143-162.857 85.143-260 0-241.714-197.143-438.857-438.857-438.857s-438.857 197.143-438.857 438.857c0 97.143 32 186.857 85.143 260 20.571-102.286 70.286-186.857 174.857-186.857 46.286 45.143 109.143 73.143 178.857 73.143s132.571-28 178.857-73.143c104.571 0 154.286 84.571 174.857 186.857zM731.429 402.286c0-121.143-98.286-219.429-219.429-219.429s-219.429 98.286-219.429 219.429 98.286 219.429 219.429 219.429 219.429-98.286 219.429-219.429z"
+                    ></path>
+                </svg>
+                <h1 class="sidebar-heading2" style="margin-top: 10px">{{ heading11111 }}</h1>
+            </div>
+        </router-link>
+        <div  v-if="this.$store.getters.getAdminLogged == false">
+        <router-link to="/login">
+            <div class="sidebar-container3" >
                 <svg viewBox="0 0 1024 1024" class="sidebar-icon4">
                     <path
                     d="M512 0c282.857 0 512 229.143 512 512 0 281.143-228 512-512 512-283.429 0-512-230.286-512-512 0-282.857 229.143-512 512-512zM865.714 772c53.143-73.143 85.143-162.857 85.143-260 0-241.714-197.143-438.857-438.857-438.857s-438.857 197.143-438.857 438.857c0 97.143 32 186.857 85.143 260 20.571-102.286 70.286-186.857 174.857-186.857 46.286 45.143 109.143 73.143 178.857 73.143s132.571-28 178.857-73.143c104.571 0 154.286 84.571 174.857 186.857zM731.429 402.286c0-121.143-98.286-219.429-219.429-219.429s-219.429 98.286-219.429 219.429 98.286 219.429 219.429 219.429 219.429-98.286 219.429-219.429z"
@@ -68,6 +69,17 @@
                 <h1 class="sidebar-heading2" style="margin-top: 10px">{{ heading111 }}</h1>
             </div>
         </router-link>
+        </div>
+        <button  @click="signout()" style=" background-color: Transparent">
+            <div class="sidebar-container3"  v-if="this.$store.getters.getAdminLogged">
+                <svg viewBox="0 0 1024 1024" class="sidebar-icon4">
+                    <path
+                    d="M512 0c282.857 0 512 229.143 512 512 0 281.143-228 512-512 512-283.429 0-512-230.286-512-512 0-282.857 229.143-512 512-512zM865.714 772c53.143-73.143 85.143-162.857 85.143-260 0-241.714-197.143-438.857-438.857-438.857s-438.857 197.143-438.857 438.857c0 97.143 32 186.857 85.143 260 20.571-102.286 70.286-186.857 174.857-186.857 46.286 45.143 109.143 73.143 178.857 73.143s132.571-28 178.857-73.143c104.571 0 154.286 84.571 174.857 186.857zM731.429 402.286c0-121.143-98.286-219.429-219.429-219.429s-219.429 98.286-219.429 219.429 98.286 219.429 219.429 219.429 219.429-98.286 219.429-219.429z"
+                    ></path>
+                </svg>
+                <h1 class="sidebar-heading2" style="margin-top: 10px">{{ heading1111 }}</h1>
+            </div>
+        </button>
       </nav>
       <nav class="sidebar-minimize" style="cursor: pointer;" @click="toggleSidebar()">
         <svg viewBox="0 0 1024 1024" class="sidebar-icon6">
@@ -104,6 +116,14 @@ export default {
       type: String,
       default: 'Login',
     },
+    heading1111: {
+      type: String,
+      default: 'Logout',
+    },
+    heading11111: {
+      type: String,
+      default: 'Manage Users',
+    },
   },
   data() {
     return {
@@ -119,6 +139,8 @@ export default {
   methods: {
         toggleSidebar() {
             this.$store.commit('toggleSidebar');
+        },signout(){
+        this.$store.commit('storeLogout')
         },
         filterData() {
             this.$store.commit('filterData', this.filter);
@@ -251,7 +273,7 @@ export default {
   width: 100%;
   display: flex;
   align-self: stretch;
-  margin-top: var(--dl-space-space-tripleunit);
+  margin-top: 10px;
   align-items: stretch;
   flex-direction: column;
   justify-content: center;
@@ -330,7 +352,7 @@ export default {
   justify-content: center;
 }
 .sidebar-icon4 {
-  fill: #D9D9D9;
+  fill: var(--dl-color-gray-white);
   width: 24px;
   height: 24px;
 }

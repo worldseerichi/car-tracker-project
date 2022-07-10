@@ -32,7 +32,7 @@
                <th>{{s[1][3][0]}}</th>
                <th v-if="s[1][1]!= null">{{s[1][1]}}</th><th v-else>0</th>
                <th>{{s[1][0][0].substring(0,s[1][0][0].indexOf('T'))}}</th>
-               <th v-if="s[1][2][0]==NULL"><button type="button" @click="this.softdelete(s[0])" class="btn btn-link btn-sm px-3" data-ripple-color="dark">
+               <th v-if="s[1][2][0]==null"><button type="button" @click="this.softdelete(s[0])" class="btn btn-link btn-sm px-3" data-ripple-color="dark">
                   Delete
                 </button></th><th v-else><button type="button" @click="this.restore(s[0])" class="btn btn-link btn-sm px-3" data-ripple-color="dark">
                   Restore
@@ -150,7 +150,6 @@ export default {
                         .map(function (data) { return data.id; })
                         )
                       });
-                  console.log(userRsuMap);
                   const object = response.data['requestamounts'][0]
 
                   for (const property in object) {rsuAmount.set(property,object[property])}
@@ -171,7 +170,6 @@ export default {
                           
                         ])
                   });
-                  console.log(userDataMap);
                 //console.log(userDataMap);
                 //console.log(Array.from(userDataMap))
                 this.s = Array.from(userDataMap)

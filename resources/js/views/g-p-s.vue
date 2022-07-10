@@ -49,6 +49,8 @@ var rsuDataMapCopy = new Map();
 var snappedCoordinatesMap = new Map();
 var snappedCoordinates = [];
 var counter = 0;
+
+
 var otherUsersIcon = {
     path: "M29.395,0H17.636c-3.117,0-5.643,3.467-5.643,6.584v34.804c0,3.116,2.526,5.644,5.643,5.644h11.759 "
         +"c3.116,0,5.644-2.527,5.644-5.644V6.584C35.037,3.467,32.511,0,29.395,0z "
@@ -114,6 +116,7 @@ export default {
       controlUI.style.border = '2px solid #ebebeb';
       controlUI.style.borderRadius = '15px';
       controlUI.style.padding = '10px';
+      controlUI.style.cursor = 'pointer';
       controlUI.title = 'Export';
       controlDiv.appendChild(controlUI);  
       controlText.style.fontSize = '16px';
@@ -122,6 +125,7 @@ export default {
       controlText.style.color = '#333';
       controlText.innerHTML = 'Export';
       controlUI.appendChild(controlText);
+
 
       controlDiv.addEventListener('click',() => {
             // Chamar aqui funcao para executar o export
