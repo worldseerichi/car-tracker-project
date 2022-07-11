@@ -31,6 +31,7 @@ var controls;
 var timers = new Map();
 var snappedCoordinates = [];
 var lastPosition = new Map();
+var rsuFullDataMap = new Map();
 var geocoder;
 var apiKey = process.env.MIX_API_KEY;
 var uniqueRsuIdArray;
@@ -117,19 +118,24 @@ export default {
       controlUI.style.borderRadius = '15px';
       controlUI.style.padding = '10px';
       controlUI.style.cursor = 'pointer';
-      controlUI.title = 'Export';
+      controlUI.title = 'Export Data';
       controlDiv.appendChild(controlUI);  
       controlText.style.fontSize = '16px';
       controlText.style.textAlign = 'center';
       controlText.style.lineHeight = '20px';
       controlText.style.color = '#333';
-      controlText.innerHTML = 'Export';
+      controlText.innerHTML = 'Export Data';
       controlUI.appendChild(controlText);
 
 
       controlDiv.addEventListener('click',() => {
             // Chamar aqui funcao para executar o export
-            console.log("IM ALIVE");
+            if(rsuFullDataMap.size === 0){
+                console.log("No Data To Export");
+            }else{
+                this.exportData();
+            }
+            
       });
       
       return controlDiv;
@@ -147,6 +153,7 @@ export default {
                 rsuDataMap = new Map();
                 markers = new Map();
                 polylines = new Map();
+                rsuFullDataMap = new Map();
                 var validLocationCheck = true;
                 //console.log(response);
 
@@ -165,6 +172,11 @@ export default {
                                     rsuId,
                                     response.data.filter(data => data.rsu_id == rsuId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate)
                                     .map(function (data) { return [data.latitude, data.longitude]; })
+                                )
+                                rsuFullDataMap.set(
+                                    rsuId,
+                                    response.data.filter(data => data.rsu_id == rsuId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate)
+                                    .map(function (data) { return data; })
                                 )
                             }
                         });
@@ -206,6 +218,11 @@ export default {
                             rsuId,
                             response.data.filter(data => data.rsu_id == rsuId)
                             .map(function (data) { return [data.latitude, data.longitude]; })
+                        )
+                        rsuFullDataMap.set(
+                            rsuId,
+                            response.data.filter(data => data.rsu_id == rsuId)
+                            .map(function (data) { return data; })
                         )
                     });
                 }
@@ -416,7 +433,7 @@ export default {
         marker.getIcon().rotation = heading;
         marker.setIcon(marker.getIcon());
     },
-
+    
     InvervalTimer(callback, interval, arg) {
         //console.log(timer)
         var timerId, startTime, remaining = 0;
@@ -462,7 +479,18 @@ export default {
             resume: this.resume,
             timeoutCallback: this.timeoutCallback
         };
-    },
+    },exportData(){
+           this.downloadObjectAsJson({ Data: Array.from(rsuFullDataMap)} ,"TrackingData");
+        },
+        downloadObjectAsJson(exportObj, exportName){
+          var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj,null,4));
+          var downloadAnchorNode = document.createElement('a');
+          downloadAnchorNode.setAttribute("href",     dataStr);
+          downloadAnchorNode.setAttribute("download", exportName + ".json");
+          document.body.appendChild(downloadAnchorNode); // required for firefox
+          downloadAnchorNode.click();
+          downloadAnchorNode.remove();
+        },
   },
 
   mounted() {

@@ -318,9 +318,9 @@ export default {
 .sidebar-container2 {
   display: flex;
   align-self: center;
-  margin-top: var(--dl-space-space-halfunit);
+  /*margin-top: var(--dl-space-space-halfunit);*/
   align-items: center;
-  margin-bottom: var(--dl-space-space-halfunit);
+  /*margin-bottom: var(--dl-space-space-halfunit);*/
   flex-direction: row;
   justify-content: center;
   text-decoration: none;
@@ -345,9 +345,9 @@ export default {
 .sidebar-container3 {
   display: flex;
   align-self: center;
-  margin-top: var(--dl-space-space-halfunit);
+  /*margin-top: var(--dl-space-space-halfunit);*/
   align-items: center;
-  margin-bottom: var(--dl-space-space-halfunit);
+  /*margin-bottom: var(--dl-space-space-halfunit);*/
   flex-direction: row;
   justify-content: center;
 }
