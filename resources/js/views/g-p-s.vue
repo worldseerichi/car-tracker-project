@@ -108,7 +108,8 @@ export default {
         geocoder = new google.maps.Geocoder();
         this.getRouteData();
     },
-     giveButton(map){       // Add Button Export To Google Map
+
+    giveButton(map){       // Add Button Export To Google Map
       controlDiv = document.createElement('div');
       controlUI = document.createElement('div');
       controlText = document.createElement('div');
@@ -478,18 +479,21 @@ export default {
             resume: this.resume,
             timeoutCallback: this.timeoutCallback
         };
-    },exportData(){
-           this.downloadObjectAsJson({ Data: Array.from(rsuFullDataMap)} ,"TrackingData");
-        },
-        downloadObjectAsJson(exportObj, exportName){
-          var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj,null,4));
-          var downloadAnchorNode = document.createElement('a');
-          downloadAnchorNode.setAttribute("href",     dataStr);
-          downloadAnchorNode.setAttribute("download", exportName + ".json");
-          document.body.appendChild(downloadAnchorNode); // required for firefox
-          downloadAnchorNode.click();
-          downloadAnchorNode.remove();
-        },
+    },
+
+    exportData(){
+        this.downloadObjectAsJson({ Data: Array.from(rsuFullDataMap)} ,"TrackingData");
+    },
+
+    downloadObjectAsJson(exportObj, exportName){
+        var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj,null,4));
+        var downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href",     dataStr);
+        downloadAnchorNode.setAttribute("download", exportName + ".json");
+        document.body.appendChild(downloadAnchorNode); // required for firefox
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    },
   },
 
   mounted() {

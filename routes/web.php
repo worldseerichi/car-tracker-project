@@ -55,6 +55,5 @@ Route::post('signout', [AuthController::class, 'signOut'])->name('signout');
  // Soft Delete
 
 //Route::get('usersAll', [UserController::class, 'index'])->name('users.index');
-//Route::delete('users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
 Route::delete('users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
 Route::get('users/restore/{id}', [UserController::class, 'restore'])->name('users.restore');
