@@ -16,7 +16,7 @@ class UserController extends Controller
     {
         $users = User::withTrashed()->all();
         //return response()->json($users);*/
-        
+
         return response()->json($users);
     }
 
@@ -93,7 +93,9 @@ class UserController extends Controller
     public function destroy($id)
     {
         $user = User::find($id);
+        $rsu = RSu::where('user_id', $id)->first();
         $user->delete();
+        $rsu->delete();
 
         return "User Successfully Deleted";
     }
@@ -123,9 +125,10 @@ class UserController extends Controller
     public function restore($id)
     {
         User::withTrashed()->find($id)->restore();
-  
+        Rsu::withTrashed()->where('user_id', $id)->restore();
+
         return "User Sucessfully Restored";
-    }  
+    }
      /**
      * restore all post
      *
@@ -134,11 +137,11 @@ class UserController extends Controller
     public function restoreAll()
     {
         User::onlyTrashed()->restore();
-  
+
         return redirect()->back();
     }
-   
-    public function forceDelete($id) 
+
+    public function forceDelete($id)
     {
         User::where('id', $id)->withTrashed()->forceDelete();
 
