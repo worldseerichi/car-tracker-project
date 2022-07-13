@@ -35,8 +35,8 @@ class MapsController extends Controller
         if(count($data) == 0){
             return 'No data found';
         };*/
-
-        $data = TrackingData::get();
+        $validRsus = Rsu::pluck('id')->toArray();
+        $data = TrackingData::whereIn('rsu_id', $validRsus)->get();
 
         if(count($data) == 0){
             return 'No data found';
@@ -67,11 +67,13 @@ class MapsController extends Controller
         $start = new DateTime($request->input('start_date'));
         $end = new DateTime($request->input('end_date'));
 
-        $data = TrackingData::whereBetween('recorded_at', [$start, $end])->get();
+        $validRsus = Rsu::pluck('id')->toArray();
+
+        $data = TrackingData::whereIn('rsu_id', $validRsus)->whereBetween('recorded_at', [$start, $end])->get();
         if(count($data) == 0){
             return 'No data found';
         };
-        $rsus = TrackingData::select('rsu_id')->distinct()->get();
+        $rsus = TrackingData::whereIn('rsu_id', $validRsus)->select('rsu_id')->distinct()->get();
         $rsuData = [];
 
         foreach ($rsus as $value) {
@@ -139,7 +141,7 @@ class MapsController extends Controller
     public function getDataCounted(){
         //amount TrackingData::count();
         $QntOfDataAPI = [];
-        $rsus = Rsu::get();
+        $rsus = Rsu::withTrashed()->get();
         $rsusCounter = count(TrackingData::select('rsu_id')->distinct()->get());
         $data = TrackingData::get();
         if(count($data) == 0){
@@ -151,13 +153,13 @@ class MapsController extends Controller
             for ($i = 1; $i <= $rsusCounter; $i++) {
                 $QntOfDataAPI[$i] = count(TrackingData::where("rsu_id", $i )->get());
             }
-        }  
-        
-        
+        }
+
+
         $users = User::withTrashed()->where('is_admin', 0)->get();
         return array('requestamounts' => array($QntOfDataAPI), 'rsus' => $rsus, 'users' => $users);
     }
-     
+
 
     public function getToken(Request $request){
         //return csrf_token();

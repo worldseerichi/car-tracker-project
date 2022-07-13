@@ -5,12 +5,11 @@
       <div class="g-p-s-bg"></div>
     </div>
     <div class="g-p-s-container1" id="map"></div>
-    <div id="controlsDiv" style="display: flex; justify-content: space-around; width: 30%; visibility: hidden;">
+    <!--<div id="controlsDiv" style="display: flex; justify-content: space-around; width: 30%; visibility: hidden;">
         <button id="controls" @click="playBtn()">Play</button>
         <button id="controls" @click="pauseBtn()">Pause</button>
         <button id="controls" @click="stopBtn()">Stop</button>
-        <!--<button id="controls" @click="rewindBtn()">Rewind</button>-->
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -109,7 +108,8 @@ export default {
         geocoder = new google.maps.Geocoder();
         this.getRouteData();
     },
-     giveButton(map){       // Add Button Export To Google Map
+
+    giveButton(map){       // Add Button Export To Google Map
       controlDiv = document.createElement('div');
       controlUI = document.createElement('div');
       controlText = document.createElement('div');
@@ -119,7 +119,7 @@ export default {
       controlUI.style.padding = '10px';
       controlUI.style.cursor = 'pointer';
       controlUI.title = 'Export Data';
-      controlDiv.appendChild(controlUI);  
+      controlDiv.appendChild(controlUI);
       controlText.style.fontSize = '16px';
       controlText.style.textAlign = 'center';
       controlText.style.lineHeight = '20px';
@@ -135,9 +135,9 @@ export default {
             }else{
                 this.exportData();
             }
-            
+
       });
-      
+
       return controlDiv;
     },
 
@@ -433,7 +433,7 @@ export default {
         marker.getIcon().rotation = heading;
         marker.setIcon(marker.getIcon());
     },
-    
+
     InvervalTimer(callback, interval, arg) {
         //console.log(timer)
         var timerId, startTime, remaining = 0;
@@ -479,18 +479,21 @@ export default {
             resume: this.resume,
             timeoutCallback: this.timeoutCallback
         };
-    },exportData(){
-           this.downloadObjectAsJson({ Data: Array.from(rsuFullDataMap)} ,"TrackingData");
-        },
-        downloadObjectAsJson(exportObj, exportName){
-          var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj,null,4));
-          var downloadAnchorNode = document.createElement('a');
-          downloadAnchorNode.setAttribute("href",     dataStr);
-          downloadAnchorNode.setAttribute("download", exportName + ".json");
-          document.body.appendChild(downloadAnchorNode); // required for firefox
-          downloadAnchorNode.click();
-          downloadAnchorNode.remove();
-        },
+    },
+
+    exportData(){
+        this.downloadObjectAsJson({ Data: Array.from(rsuFullDataMap)} ,"TrackingData");
+    },
+
+    downloadObjectAsJson(exportObj, exportName){
+        var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj,null,4));
+        var downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href",     dataStr);
+        downloadAnchorNode.setAttribute("download", exportName + ".json");
+        document.body.appendChild(downloadAnchorNode); // required for firefox
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    },
   },
 
   mounted() {
@@ -512,6 +515,10 @@ export default {
                 circle.setMap(null);
             });
             circles = [];
+            rsuDataMapCopy.forEach((values,keys)=>{
+                timers.get(keys) && timers.get(keys).cancel();
+                timers.set(keys, null);
+            });
             timers = new Map();
             this.getRouteData();
         }
