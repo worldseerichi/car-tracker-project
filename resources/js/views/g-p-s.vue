@@ -10,12 +10,24 @@
         <button id="controls" @click="pauseBtn()">Pause</button>
         <button id="controls" @click="stopBtn()">Stop</button>
     </div> -->
+    <div id="controlsDiv" style="display: flex; justify-content: space-around; width: 100%; visibility: hidden;">
+        <vue-slider style="width: 80%;"
+            v-model="slider.value"
+            :min="slider.min"
+            :max="slider.max"
+            :drag-on-click="true"
+            :disabled="slider.disabled"
+            @change="val => this.sliderChangeHandler(val)"
+        ></vue-slider>
+    </div>
   </div>
 </template>
 
 <script>
 import AppHeader from '../components/header'
 //import '@coreui/coreui/dist/css/coreui.min.css'
+import VueSlider from 'vue-slider-component'
+import 'vue-slider-component/theme/default.css'
 import axios from 'axios';
 var map;
 /*var controlDiv;
@@ -49,6 +61,7 @@ var rsuDataMapCopy = new Map();
 var snappedCoordinatesMap = new Map();
 var snappedCoordinates = [];
 var counter = 0;
+var axiosRequestsRequired = 0;
 
 
 var otherUsersIcon = {
@@ -82,6 +95,7 @@ export default {
   name: 'GPS',
   components: {
     AppHeader,
+    VueSlider
   },
   metaInfo: {
     title: 'GPS - Vehicle Tracker',
@@ -91,6 +105,16 @@ export default {
         content: 'GPS - Car_Tracker_V1',
       },
     ],
+  },
+  data() {
+    return {
+      slider:{
+        min: 0,
+        max: 0,
+        value: 0,
+        disabled: true
+      },
+    }
   },
   methods: {
     initMap() {
@@ -155,6 +179,7 @@ export default {
                 polylines = new Map();
                 rsuFullDataMap = new Map();
                 var validLocationCheck = true;
+                this.slider.disabled = true;
                 //console.log(response);
 
                 uniqueRsuIdArray = [...new Set(response.data.map(item => item.rsu_id))];
@@ -234,8 +259,13 @@ export default {
 
                 //if rsuDataMap.size is 0, show toast message about no data found
 
-                //snapToRoads takes up to 100 GPS points, current position plus 99 previous positions (slice)
                 counter = 0;
+                axiosRequestsRequired = 0; //number of requests to be made to snapToRoads API
+                rsuDataMap.forEach((values,keys)=>{
+                    axiosRequestsRequired += Math.ceil(values.length/100);
+                });
+
+                //snapToRoads takes up to 100 GPS points at a time, so we need to make multiple requests to snapToRoads API
                 rsuDataMap.forEach((values,keys)=>{
                     do {
                         axios.get('https://roads.googleapis.com/v1/snapToRoads', { params: {
@@ -251,15 +281,20 @@ export default {
                             if (values.length == 0) { //possible issue with big data due to funky javascript race conditions
                                 this.drawRoute(keys);
                             }
-                             //draws the current user's driven path from the previous 100 coordinates
-                            if (counter == rsuDataMap.size) {
+                            //runs in last axios request
+                            if (counter == axiosRequestsRequired) {
                                 if (this.$store.getters.getLocation == '') {
                                     this.centerMap();
                                 };
+
                                 rsuDataMapCopy.forEach((values,keys)=>{
                                     timers.set(keys, null);
                                 });
-                                controls.style.visibility = 'visible';
+
+                                if (this.$store.getters.isFiltered) {
+                                    controls.style.visibility = 'visible';
+                                    this.setSliderValues();
+                                }
                             };
                         })
                         .catch(e => {
@@ -349,6 +384,20 @@ export default {
                 }
             });*/
         }
+    },
+
+    setSliderValues() {
+        var startDate = new Date(this.$store.getters.getStartDate);
+        var endDate = new Date(this.$store.getters.getEndDate);
+
+        this.slider.max = endDate.getTime()/1000.0; //epoch time in seconds
+        this.slider.value = endDate.getTime()/1000.0;
+        this.slider.min = startDate.getTime()/1000.0;
+        this.slider.disabled = false;
+    },
+
+    sliderChangeHandler(val){
+        console.log(val);
     },
 
     selectMarker(rsu_id) {
