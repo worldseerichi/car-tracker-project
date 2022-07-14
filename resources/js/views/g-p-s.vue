@@ -5,20 +5,18 @@
       <div class="g-p-s-bg"></div>
     </div>
     <div class="g-p-s-container1" id="map"></div>
-    <!--<div id="controlsDiv" style="display: flex; justify-content: space-around; width: 30%; visibility: hidden;">
-        <button id="controls" @click="playBtn()">Play</button>
-        <button id="controls" @click="pauseBtn()">Pause</button>
-        <button id="controls" @click="stopBtn()">Stop</button>
-    </div> -->
     <div id="controlsDiv" style="display: flex; justify-content: space-around; width: 100%; visibility: hidden;">
-        <vue-slider style="width: 80%;"
+        <button id="controls" @click="setExportStart()">Set Slider Start</button>
+        <vue-slider style="width: 60%; padding: 31px 0px;"
             v-model="slider.value"
             :min="slider.min"
             :max="slider.max"
             :drag-on-click="true"
             :disabled="slider.disabled"
+            :tooltip="'none'"
             @change="val => this.sliderChangeHandler(val)"
-        ></vue-slider>
+        ></vue-slider> <!-- 18px de padding preferivel -->
+        <button id="controls" @click="setExportEnd()">Set Slider End</button>
     </div>
   </div>
 </template>
@@ -62,6 +60,8 @@ var snappedCoordinatesMap = new Map();
 var snappedCoordinates = [];
 var counter = 0;
 var axiosRequestsRequired = 0;
+var exportTimestampStart = 0;
+var exportTimestampEnd = 0;
 
 
 var otherUsersIcon = {
@@ -127,13 +127,13 @@ export default {
                 }
             };
         map = new google.maps.Map(document.getElementById("map"), mapOptions); //creates and initializes the map
-        const centerFilterControl = this.giveButton(map);
+        const centerFilterControl = this.giveButton();
         map.controls[google.maps.ControlPosition.TOP_CENTER].push(centerFilterControl);
         geocoder = new google.maps.Geocoder();
         this.getRouteData();
     },
 
-    giveButton(map){       // Add Button Export To Google Map
+    giveButton(){       // Add Button Export To Google Map
       controlDiv = document.createElement('div');
       controlUI = document.createElement('div');
       controlText = document.createElement('div');
@@ -236,6 +236,8 @@ export default {
                             });
                         }
 
+                    }else{
+                        console.log('No data found through current filters');
                     }
                 }else{ //no filter applied
                     uniqueRsuIdArray.forEach(function(rsuId) {
@@ -353,6 +355,7 @@ export default {
                 icon: otherUsersIcon,
             })
         );
+        //change marker rotation here
         google.maps.event.addListener(markers.get(rsu_id), 'click', () => {this.selectMarker(rsu_id);});
         google.maps.event.addListener(polylines.get(rsu_id), 'click', () => {this.selectMarker(rsu_id);});
     },
@@ -386,6 +389,12 @@ export default {
         }
     },
 
+    getDataClosestToSliderPosition(data, target){
+        return data.reduce((acc, obj) =>
+            Math.abs(target - new Date(obj.recorded_at).getTime()/1000) < Math.abs(target - new Date(acc.recorded_at).getTime()/1000) ? obj : acc
+        );
+    },
+
     setSliderValues() {
         var startDate = new Date(this.$store.getters.getStartDate);
         var endDate = new Date(this.$store.getters.getEndDate);
@@ -393,11 +402,41 @@ export default {
         this.slider.max = endDate.getTime()/1000.0; //epoch time in seconds
         this.slider.value = endDate.getTime()/1000.0;
         this.slider.min = startDate.getTime()/1000.0;
+
+        exportTimestampStart = this.$store.getters.getStartDate;
+        exportTimestampEnd = this.$store.getters.getEndDate;
+
         this.slider.disabled = false;
     },
 
     sliderChangeHandler(val){
-        console.log(val);
+        //console.log(val);
+        rsuFullDataMap.forEach((values,keys)=>{
+            var sliderPosition = this.getDataClosestToSliderPosition(values, val);
+            var sliderPositionIndex = values.indexOf(sliderPosition);
+            var sliderPositionLatLng = new google.maps.LatLng(sliderPosition.latitude, sliderPosition.longitude);
+
+            if (sliderPositionIndex == values.length-1) {
+                var previousPosition = values[sliderPositionIndex-1];
+                var previousPositionLatLng = new google.maps.LatLng(previousPosition.latitude, previousPosition.longitude);
+                var heading = google.maps.geometry.spherical.computeHeading(previousPositionLatLng, sliderPositionLatLng);
+
+                this.moveMarker(markers.get(keys), sliderPositionLatLng, heading);
+            }else{
+                var nextPosition = values[sliderPositionIndex+1];
+                var nextPositionLatLng = new google.maps.LatLng(nextPosition.latitude, nextPosition.longitude);
+                var heading = google.maps.geometry.spherical.computeHeading(sliderPositionLatLng, nextPositionLatLng);
+
+                this.moveMarker(markers.get(keys), sliderPositionLatLng, heading);
+            }
+        });
+    },
+
+    moveMarker(marker, position, heading) {
+        marker.setPosition(position);
+        //map.panTo(currentMarkerPos);
+        marker.getIcon().rotation = heading;
+        marker.setIcon(marker.getIcon());
     },
 
     selectMarker(rsu_id) {
@@ -418,120 +457,41 @@ export default {
             selectedPolyline = polylines.get(rsu_id);
             selectedMarker = markers.get(rsu_id);
         };
-    },
-
-    playBtn(){
-        rsuDataMapCopy.forEach((values,keys)=>{
-            if (!timers.get(keys)) {
-                //line.getPath().clear();
-                this.recursiveAnimate(0, keys);
-
-            } else {
-                timers.get(keys).resume();
-            }
-        });
-    },
-
-    pauseBtn(){
-        rsuDataMapCopy.forEach((values,keys)=>{
-            timers.get(keys) && timers.get(keys).pause();
-        });
-    },
-
-    stopBtn(){
-        rsuDataMapCopy.forEach((values,keys)=>{
-            timers.get(keys) && timers.get(keys).cancel();
-            timers.set(keys, null);
-            //line.setPath(pathCoords)
-        });
-    },
-
-    recursiveAnimate(index, rsu_id) {
-        timers.get(rsu_id) && timers.get(rsu_id).cancel()
-        //var coordsDeparture = pathCoords[index];
-        //var coordsArrival = pathCoords[index + 1];
-        var rsuCoords = rsuDataMapCopy.get(rsu_id);
-        var currentThis = this;
-        var departure = new google.maps.LatLng(rsuCoords[index][0], rsuCoords[index][1]); //Set to whatever lat/lng you need for your departure location
-        var arrival = new google.maps.LatLng(rsuCoords[index+1][0], rsuCoords[index+1][1]); //Set to whatever lat/lng you need for your arrival location
-        var lastStop = new google.maps.LatLng(rsuCoords[rsuCoords.length-1][0], rsuCoords[rsuCoords.length-1][1]);
-        var step = 0;
-        var numSteps = 200; //Change this to set animation resolution
-        var timePerStep = 8; //Change this to alter animation speed
-        timers.set(rsu_id, this.InvervalTimer(function(arg) {
-            step += 1;
-            if (step > numSteps) {
-            //clearInterval(interval);
-            step = 0
-            timers.get(rsu_id).cancel()
-            if (index < rsuCoords.length - 2) {
-                currentThis.recursiveAnimate(index + 1, rsu_id)
-            }
-            } else {
-            var are_we_there_yet = google.maps.geometry.spherical.interpolate(departure, arrival, step / numSteps);
-            //line.getPath().push(are_we_there_yet);
-            currentThis.moveMarker(map, markers.get(rsu_id), departure, are_we_there_yet);
-            }
-        }, timePerStep));
-    },
-
-    moveMarker(map, marker, departure, currentMarkerPos) {
-        marker.setPosition(currentMarkerPos);
-        //map.panTo(currentMarkerPos);
-        var heading = google.maps.geometry.spherical.computeHeading(departure, currentMarkerPos);
-        marker.getIcon().rotation = heading;
-        marker.setIcon(marker.getIcon());
-    },
-
-    InvervalTimer(callback, interval, arg) {
-        //console.log(timer)
-        var timerId, startTime, remaining = 0;
-        var state = 0; //  0 = idle, 1 = running, 2 = paused, 3= resumed
-        var timeoutId;
-        this.pause = function() {
-            if (state != 1) return;
-
-            remaining = interval - (new Date() - startTime);
-            window.clearInterval(timerId);
-            state = 2;
-        };
-
-        this.resume = function() {
-            if (state != 2) return;
-
-            state = 3;
-            //console.log(remaining)
-            timeoutId = window.setTimeout(this.timeoutCallback, remaining, arg);
-        };
-
-        this.timeoutCallback = function(timer) {
-            if (state != 3) return;
-                clearTimeout(timeoutId);
-            startTime = new Date();
-            timerId = window.setInterval(function() {
-            callback(this.arg)
-            }, interval);
-            state = 1;
-        };
-
-        this.cancel = function() {
-            clearInterval(timerId)
+        if (this.$store.getters.isFiltered) {
+            this.sliderChangeHandler(this.slider.value);
         }
-        startTime = new Date();
-        timerId = window.setInterval(function() {
-            callback(arg)
-        }, interval);
-        state = 1;
-        return {
-            cancel: this.cancel,
-            pause: this.pause,
-            resume: this.resume,
-            timeoutCallback: this.timeoutCallback
-        };
+    },
+
+    setExportStart(){
+        //console.log("setExportStart");
+        if (new Date(exportTimestampEnd).getTime()/1000 < this.slider.value) {
+            console.log('Export Date Start must be lower than the Export Date End');
+        }else{
+            var startDate = new Date(this.slider.value * 1000);
+            exportTimestampStart = startDate.toISOString().slice(0, 16);
+        }
+    },
+
+    setExportEnd(){
+        //console.log("setExportEnd");
+        if (new Date(exportTimestampStart).getTime()/1000 > this.slider.value) {
+            console.log('Export Date End must be higher than the Export Date Start');
+        }else{
+            var endDate = new Date(this.slider.value * 1000);
+            exportTimestampEnd = endDate.toISOString().slice(0, 16);
+        }
     },
 
     exportData(){
-        this.downloadObjectAsJson({ Data: Array.from(rsuFullDataMap)} ,"TrackingData");
+        var rsuExportData = new Map();
+        rsuFullDataMap.forEach((values,keys)=>{
+            rsuExportData.set(
+                keys,
+                values.filter(data => data.recorded_at >= exportTimestampStart && data.recorded_at <= exportTimestampEnd)
+                .map(function (data) { return data; })
+                );
+        });
+        this.downloadObjectAsJson({ Data: Array.from(rsuExportData)} ,"TrackingData");
     },
 
     downloadObjectAsJson(exportObj, exportName){
@@ -630,8 +590,8 @@ export default {
     background-color: white;
     color: black;
     border: 2px solid #008CBA;
-    width: 100%;
-    margin: 2px;
+    width: 15%;
+    margin: 4px;
 }
 </style>
 
