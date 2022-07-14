@@ -1,7 +1,7 @@
 <html lang="en">
   <head>
     <title>Vehicle Tracker</title>
-    <script  src="https://maps.googleapis.com/maps/api/js?libraries=drawing,places&key={{$apiKey}}&callback=initMap"></script>
+    <script  src="https://maps.googleapis.com/maps/api/js?libraries=drawing,places,geometry&key={{$apiKey}}&callback=initMap"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta charset="utf-8" />
     <meta name="csrf-token" content="{{ csrf_token() }}">

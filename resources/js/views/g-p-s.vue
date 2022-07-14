@@ -37,7 +37,6 @@ var controlDiv;
 var controlText;
 //
 var controls;
-var timers = new Map();
 var snappedCoordinates = [];
 var lastPosition = new Map();
 var rsuFullDataMap = new Map();
@@ -254,11 +253,6 @@ export default {
                     });
                 }
 
-                //copy of rsuDataMap for use in animations
-                rsuDataMapCopy = new Map(JSON.parse(
-                    JSON.stringify(Array.from(rsuDataMap)) //copies map and disconnects from original map
-                ));
-
                 //if rsuDataMap.size is 0, show toast message about no data found
 
                 counter = 0;
@@ -289,9 +283,7 @@ export default {
                                     this.centerMap();
                                 };
 
-                                rsuDataMapCopy.forEach((values,keys)=>{
-                                    timers.set(keys, null);
-                                });
+                                this.setInitialMarkerRotations();
 
                                 if (this.$store.getters.isFiltered) {
                                     controls.style.visibility = 'visible';
@@ -355,7 +347,6 @@ export default {
                 icon: otherUsersIcon,
             })
         );
-        //change marker rotation here
         google.maps.event.addListener(markers.get(rsu_id), 'click', () => {this.selectMarker(rsu_id);});
         google.maps.event.addListener(polylines.get(rsu_id), 'click', () => {this.selectMarker(rsu_id);});
     },
@@ -439,6 +430,19 @@ export default {
         marker.setIcon(marker.getIcon());
     },
 
+    setInitialMarkerRotations(){
+        rsuFullDataMap.forEach((values,keys)=>{
+            if (values.length > 1) {
+                var currentPos = values[values.length-1];
+                var previousPos = values[values.length-2];
+                var currentPosLatLng = new google.maps.LatLng(currentPos.latitude, currentPos.longitude);
+                var previousPosLatLng = new google.maps.LatLng(previousPos.latitude, previousPos.longitude);
+                var heading = google.maps.geometry.spherical.computeHeading(previousPosLatLng, currentPosLatLng);
+                markers.get(keys).getIcon().rotation = heading;
+            }
+        });
+    },
+
     selectMarker(rsu_id) {
         if(markers.get(rsu_id) == selectedMarker){ //unselect marker when clicking a selected marker
           selectedPolyline = null;
@@ -457,6 +461,7 @@ export default {
             selectedPolyline = polylines.get(rsu_id);
             selectedMarker = markers.get(rsu_id);
         };
+        this.setInitialMarkerRotations();
         if (this.$store.getters.isFiltered) {
             this.sliderChangeHandler(this.slider.value);
         }
@@ -524,11 +529,6 @@ export default {
                 circle.setMap(null);
             });
             circles = [];
-            rsuDataMapCopy.forEach((values,keys)=>{
-                timers.get(keys) && timers.get(keys).cancel();
-                timers.set(keys, null);
-            });
-            timers = new Map();
             this.getRouteData();
         }
     }
