@@ -19,7 +19,7 @@
       <router-link to="/" class="header-navlink2">
         <h1 class="header-heading1 textSM">{{ heading1 }}</h1>
       </router-link>
-      <router-link to="/g-p-s" class="header-navlink3">
+      <router-link to="/gps" class="header-navlink3">
         <div class="header-container4">
           <svg viewBox="0 0 1024 1024" class="header-icon17">
             <path
@@ -29,7 +29,7 @@
           <span class="header-text2 textSM">Tracking</span>
         </div>
       </router-link>
-      <router-link to="/manage-accounts" class="header-navlink4" v-if="this.$store.getters.getAdminLogged">
+      <router-link to="/manageAccounts" class="header-navlink4" v-if="this.$store.getters.getAdminLogged">
         <div class="header-container5">
           <svg viewBox="0 0 1170.2857142857142 1024" class="header-icon19">
             <path

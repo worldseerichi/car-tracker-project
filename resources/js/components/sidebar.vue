@@ -4,7 +4,7 @@
       <nav class="sidebar-title">
         <span class="sidebar-text"><span>VT Sidebar</span></span>
       </nav>
-      <nav class="sidebar-filter-options" v-show="this.$route.fullPath == '/g-p-s'">
+      <nav class="sidebar-filter-options" v-show="this.$route.fullPath == '/gps'">
         <span class="sidebar-location"><span>Location in format: lat,lng</span></span>
         <input
           type="text"
@@ -33,12 +33,12 @@
         />
 
       </nav>
-      <button class="sidebar-button button" @click="filterData()" v-show="this.$route.fullPath == '/g-p-s'">Filter</button>
-      <button class="sidebar-button button" @click="resetFilter()" v-show="this.$route.fullPath == '/g-p-s'">Reset Filters</button>
-      <button class="sidebar-button button" @click="exportFilters()" v-show="this.$route.fullPath == '/g-p-s'">Export Filters</button>
+      <button class="sidebar-button button" @click="filterData()" v-show="this.$route.fullPath == '/gps'">Filter</button>
+      <button class="sidebar-button button" @click="resetFilter()" v-show="this.$route.fullPath == '/gps'">Reset Filters</button>
+      <button class="sidebar-button button" @click="exportFilters()" v-show="this.$route.fullPath == '/gps'">Export Filters</button>
       <nav class="sidebar-navigation">
         <span style="width: 100%;text-align: center" class="sidebar-text4 textSM ">Navigation links:</span>
-        <router-link to="/g-p-s" class="sidebar-navlink1">
+        <router-link to="/gps" class="sidebar-navlink1">
           <div class="sidebar-container2">
             <svg viewBox="0 0 1024 1024" class="sidebar-icon2">
               <path
@@ -48,7 +48,7 @@
             <h1 class="sidebar-heading1" style="margin-top: 10px">{{ heading11 }}</h1>
           </div>
         </router-link>
-        <router-link to="/manage-accounts" v-if="this.$store.getters.getAdminLogged">
+        <router-link to="/manageAccounts" v-if="this.$store.getters.getAdminLogged">
             <div class="sidebar-container3">
                 <svg viewBox="0 0 1024 1024" class="sidebar-icon4">
                     <path
@@ -139,8 +139,9 @@ export default {
   methods: {
         toggleSidebar() {
             this.$store.commit('toggleSidebar');
-        },signout(){
-        this.$store.commit('storeLogout')
+        },
+        signout(){
+            this.$store.commit('storeLogout')
         },
         filterData() {
             this.$store.commit('filterData', this.filter);
@@ -158,16 +159,16 @@ export default {
             this.filter.end_date = now.toISOString().slice(0, 16);
         },
         exportFilters(){
-           this.downloadObjectAsJson({ location: this.filter.location ,range: this.filter.range, start_date: this.filter.start_date,end_date: this.filter.end_date} ,"FilterValues");
+            this.downloadObjectAsJson({ location: this.filter.location ,range: this.filter.range, start_date: this.filter.start_date,end_date: this.filter.end_date} ,"FilterValues");
         },
         downloadObjectAsJson(exportObj, exportName){
-          var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj,null,4));
-          var downloadAnchorNode = document.createElement('a');
-          downloadAnchorNode.setAttribute("href",     dataStr);
-          downloadAnchorNode.setAttribute("download", exportName + ".json");
-          document.body.appendChild(downloadAnchorNode); // required for firefox
-          downloadAnchorNode.click();
-          downloadAnchorNode.remove();
+            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj,null,4));
+            var downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href",     dataStr);
+            downloadAnchorNode.setAttribute("download", exportName + ".json");
+            document.body.appendChild(downloadAnchorNode); // required for firefox
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
         }
   },
   mounted() {

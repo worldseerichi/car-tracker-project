@@ -8,11 +8,11 @@ import { createStore } from 'vuex'
 //Vue.use(VueRouter)
 
 
-import GPS from './views/g-p-s'
-import home from './views/home'
+import GPS from './views/gps'
+import Home from './views/home'
 import App from './views/App'
 import Login from './views/login'
-import ManageAccounts from './views/manage-accounts'
+import ManageAccounts from './views/manageAccounts'
 import auth from './middleware/auth'
 import './style.css'
 import store from "./store"
@@ -24,13 +24,13 @@ const router = VueRouter.createRouter({
     routes: [
         {
             name: 'GPS',
-            path: '/g-p-s',
+            path: '/gps',
             component: GPS,
         },
         {
-            name: 'home',
+            name: 'Home',
             path: '/',
-            component: home,
+            component: Home,
         },
         {
             name: 'Login',
@@ -39,7 +39,7 @@ const router = VueRouter.createRouter({
         },
         {
             name: 'ManageAccounts',
-            path: '/manage-accounts',
+            path: '/manageAccounts',
             component: ManageAccounts,
             meta: {
                 middleware: auth,

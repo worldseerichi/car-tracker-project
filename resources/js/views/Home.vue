@@ -14,7 +14,7 @@
             <span></span>
             <span></span>
           </span>
-          <router-link to="/g-p-s" class="home-navlink button">
+          <router-link to="/gps" class="home-navlink button">
             <span class="home-text7"><span>Start Tracking</span></span>
           </router-link>
         </div>
