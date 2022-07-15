@@ -29,7 +29,7 @@
           <span class="header-text2 textSM">Tracking</span>
         </div>
       </router-link>
-      <router-link to="/register-accounts" class="header-navlink4" v-if="this.$store.getters.getAdminLogged">
+      <router-link to="/manage-accounts" class="header-navlink4" v-if="this.$store.getters.getAdminLogged">
         <div class="header-container5">
           <svg viewBox="0 0 1170.2857142857142 1024" class="header-icon19">
             <path

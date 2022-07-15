@@ -9,10 +9,10 @@ import { createStore } from 'vuex'
 
 
 import GPS from './views/g-p-s'
-import Home from './views/Home'
+import home from './views/home'
 import App from './views/App'
 import Login from './views/login'
-import RegisterAccounts from './views/register-accounts'
+import ManageAccounts from './views/manage-accounts'
 import auth from './middleware/auth'
 import './style.css'
 import store from "./store"
@@ -28,9 +28,9 @@ const router = VueRouter.createRouter({
             component: GPS,
         },
         {
-            name: 'Home',
+            name: 'home',
             path: '/',
-            component: Home,
+            component: home,
         },
         {
             name: 'Login',
@@ -38,9 +38,9 @@ const router = VueRouter.createRouter({
             component: Login,
         },
         {
-            name: 'RegisterAccounts',
-            path: '/register-accounts',
-            component: RegisterAccounts,
+            name: 'ManageAccounts',
+            path: '/manage-accounts',
+            component: ManageAccounts,
             meta: {
                 middleware: auth,
             },

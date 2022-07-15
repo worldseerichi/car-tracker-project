@@ -31,7 +31,7 @@
           v-model="filter.end_date"
           class="sidebar-end-date-time-input input"
         />
-        
+
       </nav>
       <button class="sidebar-button button" @click="filterData()" v-show="this.$route.fullPath == '/g-p-s'">Filter</button>
       <button class="sidebar-button button" @click="resetFilter()" v-show="this.$route.fullPath == '/g-p-s'">Reset Filters</button>
@@ -48,7 +48,7 @@
             <h1 class="sidebar-heading1" style="margin-top: 10px">{{ heading11 }}</h1>
           </div>
         </router-link>
-        <router-link to="/register-accounts" v-if="this.$store.getters.getAdminLogged">
+        <router-link to="/manage-accounts" v-if="this.$store.getters.getAdminLogged">
             <div class="sidebar-container3">
                 <svg viewBox="0 0 1024 1024" class="sidebar-icon4">
                     <path

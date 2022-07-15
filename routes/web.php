@@ -24,4 +24,4 @@ use Illuminate\Support\Facades\Auth;
 Route::get('/', [MapsController::class, 'index']);
 Route::get('/g-p-s', [MapsController::class, 'index']);
 Route::get('/login', [MapsController::class, 'index']);
-Route::get('/register-accounts', [MapsController::class, 'index']);
+Route::get('/manage-accounts', [MapsController::class, 'index']);

@@ -8,7 +8,6 @@
 
 <script>
 import Sidebar from '../components/sidebar'
-import '@coreui/coreui/dist/css/coreui.min.css'
 export default {
   name: 'AppContainer',
   components: {
