@@ -23,10 +23,10 @@
 
 <script>
 import AppHeader from '../components/header'
-//import '@coreui/coreui/dist/css/coreui.min.css'
 import VueSlider from 'vue-slider-component'
 import 'vue-slider-component/theme/default.css'
 import axios from 'axios';
+
 var map;
 /*var controlDiv;
 var controlUI;
@@ -61,6 +61,7 @@ var counter = 0;
 var axiosRequestsRequired = 0;
 var exportTimestampStart = 0;
 var exportTimestampEnd = 0;
+var infowindow;
 
 
 var otherUsersIcon = {
@@ -129,6 +130,14 @@ export default {
         const centerFilterControl = this.giveButton();
         map.controls[google.maps.ControlPosition.TOP_CENTER].push(centerFilterControl);
         geocoder = new google.maps.Geocoder();
+        infowindow = new google.maps.InfoWindow({
+            content: '<strong>Selected Vehicle Data: </strong>' +
+                    '<br/>Latitude: ' +
+                    '<br/>Longitude: ' +
+                    '<br/>Velocity: ' +
+                    '<br/>Bearing: ' +
+                    '<br/>Recorded at: '
+        });
         this.getRouteData();
     },
 
@@ -152,7 +161,6 @@ export default {
 
 
       controlDiv.addEventListener('click',() => {
-            // Chamar aqui funcao para executar o export
             if(rsuFullDataMap.size === 0){
                 console.log("No Data To Export");
             }else{
@@ -368,15 +376,6 @@ export default {
                 console.log("invalid location");
                 return false;
             }
-            //previous code for centering map on the given address
-            /*geocoder.geocode( { 'address': this.$store.getters.getLocation}, function(results, status) {
-                if (status == 'OK') {
-                    map.setCenter(results[0].geometry.location);
-                    map.setZoom(14);
-                } else {
-                    console.log('Geocode was not successful for the following reason: ' + status);
-                }
-            });*/
         }
     },
 
@@ -402,6 +401,13 @@ export default {
 
     sliderChangeHandler(val){
         //console.log(val);
+        if (selectedMarker != null) {
+            for (let [key, value] of rsuFullDataMap.entries()) {
+                if (value === selectedMarker){
+                    this.updateInfoWindowValues(key);
+                }
+            }
+        }
         rsuFullDataMap.forEach((values,keys)=>{
             var sliderPosition = this.getDataClosestToSliderPosition(values, val);
             var sliderPositionIndex = values.indexOf(sliderPosition);
@@ -445,11 +451,13 @@ export default {
 
     selectMarker(rsu_id) {
         if(markers.get(rsu_id) == selectedMarker){ //unselect marker when clicking a selected marker
-          selectedPolyline = null;
-          selectedMarker = null;
-          markers.get(rsu_id).setIcon(otherUsersIcon);
-          polylines.get(rsu_id).setOptions({strokeColor: '#000000', strokeOpacity: 0.5});
+            infowindow.close();
+            selectedPolyline = null;
+            selectedMarker = null;
+            markers.get(rsu_id).setIcon(otherUsersIcon);
+            polylines.get(rsu_id).setOptions({strokeColor: '#000000', strokeOpacity: 0.5});
         }else{ //select a marker and unselect others
+            infowindow.close();
             markers.forEach((values,keys)=>{
               values.setIcon(otherUsersIcon);
             });
@@ -460,11 +468,30 @@ export default {
             polylines.get(rsu_id).setOptions({strokeColor: '#FF0000', strokeOpacity: 0.9});
             selectedPolyline = polylines.get(rsu_id);
             selectedMarker = markers.get(rsu_id);
+
+            this.updateInfoWindowValues(rsu_id);
+            infowindow.open(map, selectedMarker);
         };
         this.setInitialMarkerRotations();
         if (this.$store.getters.isFiltered) {
             this.sliderChangeHandler(this.slider.value);
         }
+    },
+
+    updateInfoWindowValues(rsu_id){
+        var currentInfo = rsuFullDataMap.get(rsu_id).reduce(function (prev, curr) {
+                var currPos = google.maps.geometry.spherical.computeDistanceBetween(selectedMarker.getPosition(), new google.maps.LatLng(curr.latitude, curr.longitude));
+                var prevPos = google.maps.geometry.spherical.computeDistanceBetween(selectedMarker.getPosition(), new google.maps.LatLng(prev.latitude, prev.longitude));
+                return currPos < prevPos ? curr : prev;
+        });
+        infowindow.setContent(
+            '<strong>Selected Vehicle Data: </strong>' +
+            '<br/>Latitude: ' + currentInfo.latitude +
+            '<br/>Longitude: ' + currentInfo.longitude +
+            '<br/>Velocity: ' + currentInfo.velocity + ' km/h' +
+            '<br/>Bearing: ' + currentInfo.bearing + '&#176;' +
+            '<br/>Recorded at: ' + currentInfo.recorded_at
+        );
     },
 
     setExportStart(){
@@ -488,15 +515,19 @@ export default {
     },
 
     exportData(){
-        var rsuExportData = new Map();
-        rsuFullDataMap.forEach((values,keys)=>{
-            rsuExportData.set(
-                keys,
-                values.filter(data => data.recorded_at >= exportTimestampStart && data.recorded_at <= exportTimestampEnd)
-                .map(function (data) { return data; })
-                );
-        });
-        this.downloadObjectAsJson({ Data: Array.from(rsuExportData)} ,"TrackingData");
+        if (this.$store.getters.isFiltered) {
+            var rsuExportData = new Map();
+            rsuFullDataMap.forEach((values,keys)=>{
+                rsuExportData.set(
+                    keys,
+                    values.filter(data => data.recorded_at >= exportTimestampStart && data.recorded_at <= exportTimestampEnd)
+                    .map(function (data) { return data; })
+                    );
+            });
+            this.downloadObjectAsJson({ Data: Array.from(rsuExportData)} ,"TrackingData");
+        }else{
+            this.downloadObjectAsJson({ Data: Array.from(rsuFullDataMap)} ,"TrackingData");
+        }
     },
 
     downloadObjectAsJson(exportObj, exportName){
@@ -514,6 +545,7 @@ export default {
     this.initMap();
     controls = document.getElementById('controlsDiv');
   },
+
   watch: {
     '$store.state.filter': {deep: true,
         handler() {
