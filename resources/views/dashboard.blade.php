@@ -31,6 +31,6 @@
   <body>
     <div id="app"></div>
     <script src="{{ mix('js/app.js') }}"></script>
-    <script src="https://unpkg.com/@teleporthq/teleport-custom-scripts"></script>
+    <!--<script src="https://unpkg.com/@teleporthq/teleport-custom-scripts"></script>-->
   </body>
 </html>
