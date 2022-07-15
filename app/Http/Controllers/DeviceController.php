@@ -36,6 +36,7 @@ class DeviceController extends Controller
     public function store(Request $request)
     {
         $device = new Device([
+            'device_id' => $request->get('device_id'),
             'range' => $request->get('range'),
             'description' => $request->get('description'),
             'user_id' => $request->get('user_id')
@@ -79,7 +80,7 @@ class DeviceController extends Controller
         $device = Device::find($id);
         $device->range = $request->get('range');
         $device->description = $request->get('description');
-        //$device->user_id = $request->get('user_id');
+        $device->user_id = $request->get('user_id');
     }
 
     /**

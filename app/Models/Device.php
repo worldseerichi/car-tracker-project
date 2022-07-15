@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Device extends Model
 {
     use HasFactory, SoftDeletes;
-    protected $fillable = ['range','description','user_id'];
+    protected $fillable = ['device_id','range','description','user_id'];
 
     public function user(){
         return $this->belongsTo('App\Models\User')->withTrashed();

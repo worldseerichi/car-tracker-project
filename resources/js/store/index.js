@@ -38,7 +38,7 @@ export default createStore({
             //console.log("storeLogin");
             axios.get('/sanctum/csrf-cookie').then(response => {
                 //console.log(response);
-                axios.post('login-request',payload.user).then(response => {
+                axios.post('api/login-request',payload.user).then(response => {
                     if (response.data=='/'){
                         //console.log(response)
                         console.log("login success");
@@ -58,7 +58,7 @@ export default createStore({
             })
         },
         async storeLogout(state,payload){
-            axios.post('signout').then(response => {
+            axios.post('api/signout').then(response => {
                 state.adminLogged = false;
                 console.log("signed out");
             }).catch(function (error) {

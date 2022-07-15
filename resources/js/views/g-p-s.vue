@@ -173,7 +173,7 @@ export default {
     },
 
     getRouteData() {
-        axios.get('/getData').then(response => {
+        axios.get('api/getData').then(response => {
             //console.log(response);
             //response will be path coordinates of current logged in user
             if(response.data == 'No data found'){

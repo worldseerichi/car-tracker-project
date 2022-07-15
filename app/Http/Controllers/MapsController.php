@@ -141,6 +141,9 @@ class MapsController extends Controller
             'data.*.device_id' => 'required|numeric',
             'data.*.recorded_at' => 'required|date'
         ]);
+        Device::where('id', $request->get('device_id'))->firstOr(function () {
+            return 'User deactivated or Device not found';
+        });
         foreach ($request->get('data') as $data) {
             $this->create($data);
         }
@@ -164,7 +167,7 @@ class MapsController extends Controller
             'recorded_at' => 'required|date'
         ]);
         Device::where('id', $request->get('device_id'))->firstOr(function () {
-            return 'Device not found';
+            return 'User deactivated or Device not found';
         });
         $data = $request->only('latitude', 'longitude','altitude','bearing','velocity','gir_x','gir_y','gir_z','acel_x','acel_y','acel_z','device_id','recorded_at');
         $this->create($data);

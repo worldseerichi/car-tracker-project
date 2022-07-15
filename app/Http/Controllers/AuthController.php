@@ -25,7 +25,7 @@ class AuthController extends Controller
         $username = $request->input('username');
         $password = $request->input('password');
         //$credentials = $request->only('username', 'password');
-        if (Auth::attempt(['username' => $username, 'password' => $password, 'is_admin' => 1], true)) {
+        if (Auth::attempt(['username' => $username, 'password' => $password, 'is_admin' => 1, 'deleted_at' => null], true)) {
             $request->session()->regenerate();
             $redir = '/';
         }
@@ -38,16 +38,44 @@ class AuthController extends Controller
         $request->validate([
             'username' => 'required',
             'password' => 'required',
+            'device_id'=> 'required'
         ]);
         $username = $request->input('username');
         $password = $request->input('password');
-        if (Auth::attempt(['username' => $username, 'password' => $password, 'is_admin' => 0])) {
-            $device = Device::where('user_id', Auth::user()->id)->firstOr(function () {
-                return 'Device not found';
-            });
-            return $device['id'];
+        if (Auth::attempt(['username' => $username, 'password' => $password, 'is_admin' => 0, 'deleted_at' => null])) {
+            $user = User::where('username', $username)->first();
+            $deviceCheck = Device::where('device_id', $request->input('device_id'))->first();
+            if ($deviceCheck){
+                return 'Device already registered';
+            }
+            $device = Device::where('device_id', $request->input('device_id'))->withTrashed()->first();
+            if ($device && $user['id'] != $device['user_id']) {
+                $device->restore();
+                Device::where('device_id', $request->input('device_id'))->withTrashed()->update([
+                    'user_id' => $user['id']
+                ]);
+                return 'Device registered to new user';
+            }
+            Device::create(['device_id' => $request->input('device_id'), 'user_id' => $user['id']]);
+            return 'Device registered';
         }
 
+        return 'Login failed';
+    }
+
+    public function loginRequestDeviceID(Request $request)
+    {
+        $request->validate([
+            'device_id' => 'required',
+        ]);
+        $device_id = $request->input('device_id');
+        $device = Device::where('device_id', $device_id)->firstOr(function () {
+            return 'Device not found';
+        });
+        if ($device != 'Device not found') {
+            Auth::loginUsingId($device['user_id']);
+            return 'Login success';
+        }
         return 'Login failed';
     }
 

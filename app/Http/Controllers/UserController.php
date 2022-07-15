@@ -93,9 +93,12 @@ class UserController extends Controller
     public function destroy($id)
     {
         $user = User::find($id);
-        $device = Device::where('user_id', $id)->first();
+        $devices = Device::where('user_id', $id)->get();
         $user->delete();
-        $device->delete();
+        foreach ($devices as $device) {
+            $device->delete();
+        }
+
 
         return "User Successfully Deleted";
     }
@@ -125,8 +128,10 @@ class UserController extends Controller
     public function restore($id)
     {
         User::withTrashed()->find($id)->restore();
-        Device::withTrashed()->where('user_id', $id)->restore();
-
+        $devices = Device::withTrashed()->where('user_id', $id)->get();
+        foreach ($devices as $device) {
+            $device->restore();
+        }
         return "User Sucessfully Restored";
     }
      /**

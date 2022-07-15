@@ -22,6 +22,7 @@
               <th scope="col">User ID</th>
               <th scope="col">Username</th>
               <th scope="col">Quantity Of Tracking Data</th>
+              <th scope="col">Number of Devices</th>
               <th scope="col">Created At</th>
               <th scope="col">Actions</th>
             </tr>
@@ -29,10 +30,11 @@
           <tbody>
             <tr v-for="(s,index) in s" :key="index">
                <th>{{s[0]}}</th>
-               <th>{{s[1][3][0]}}</th>
+               <th>{{s[1][4][0]}}</th>
                <th v-if="s[1][1]!= null">{{s[1][1]}}</th><th v-else>0</th>
+               <th v-if="s[1][2]!= null">{{s[1][2]}}</th><th v-else>0</th>
                <th>{{s[1][0][0].substring(0,s[1][0][0].indexOf('T'))}}</th>
-               <th v-if="s[1][2][0]==null"><button type="button" @click="this.softdelete(s[0])" class="btn btn-link btn-sm px-3" data-ripple-color="dark">
+               <th v-if="s[1][3][0]==null"><button type="button" @click="this.softdelete(s[0])" class="btn btn-link btn-sm px-3" data-ripple-color="dark">
                   Delete
                 </button></th><th v-else><button type="button" @click="this.restore(s[0])" class="btn btn-link btn-sm px-3" data-ripple-color="dark">
                   Restore
@@ -130,7 +132,7 @@ export default {
   },
   methods:{
      getTabledata: function(){
-        axios.get('/getDataCounted').then(response => {
+        axios.get('api/getDataCounted').then(response => {
             //console.log(response);
             //response will be path coordinates of current logged in user
             if(response.data == 'No data found'){
@@ -154,19 +156,26 @@ export default {
 
                   for (const property in object) {deviceAmount.set(property,object[property])}
 
-                  uniqueUserIdArray.forEach(function(userId) {
+                uniqueUserIdArray.forEach(function(userId) {
+                    const first = [...userDeviceMap.get(userId)]
+                    var amount = 0;
+                    deviceAmount.forEach(function(value,key){
+                        if(first.includes(parseInt(key))){
+                            amount += value;
+                        }
+                    })
 
-                  const first = [...userDeviceMap.get(userId)][0]
                     userDataMap.set(
-                      userId,
-                        [
-                          response.data["users"].filter(data => data.id == userId)
-                          .map(function (data) { return data.created_at; }),
-                          deviceAmount.get(String(first)),
-                          response.data["users"].filter(data => data.id == userId)
-                          .map(function (data) { return data.deleted_at; }),
-                          response.data["users"].filter(data => data.id == userId)
-                          .map(function (data) { return data.username; })
+                        userId,
+                            [
+                            response.data["users"].filter(data => data.id == userId)
+                            .map(function (data) { return data.created_at; }),
+                            amount,
+                            userDeviceMap.get(userId).length,
+                            response.data["users"].filter(data => data.id == userId)
+                            .map(function (data) { return data.deleted_at; }),
+                            response.data["users"].filter(data => data.id == userId)
+                            .map(function (data) { return data.username; })
 
                         ])
                   });
@@ -185,7 +194,7 @@ export default {
     },
     register: function () {
             var self = this;
-            axios.post('registration-request', { username: this.username, password: this.password })
+            axios.post('api/registration-request', { username: this.username, password: this.password })
                 .then(function (response) {
                     console.log(response);
                     //implement something to tell the user an account was created~
@@ -200,7 +209,7 @@ export default {
     softdelete(userId){
       var self = this;
       console.log(userId);
-      axios.delete('users/'+userId)
+      axios.delete('api/users/'+userId)
                 .then(function (response) {
                     console.log(response);
                     self.getTabledata();
@@ -214,8 +223,8 @@ export default {
     },
     restore(userId){
       var self = this;
-      console.log(userId);
-      axios.get('users/restore/'+userId)
+      //console.log(userId);
+      axios.get('api/users/restore/'+userId)
                 .then(function (response) {
                     console.log(response);
                     self.getTabledata();

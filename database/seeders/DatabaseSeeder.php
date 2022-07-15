@@ -51,6 +51,10 @@ class DatabaseSeeder extends Seeder
             'user_id' => $user2['id'],
             'device_id' => '123456789012346',
         ]);
+        $device3 = Device::create([
+            'user_id' => $user['id'],
+            'device_id' => '123123123123123',
+        ]);
 
         $path = [[39.74084526081704, -8.802359366435601],
                 [39.74004168723268, -8.804373422691963],
@@ -90,6 +94,17 @@ class DatabaseSeeder extends Seeder
                 'latitude' => $coords[0],
                 'longitude' => $coords[1],
                 'device_id' => $device2['id']
+            ]);
+        };
+        $path3 = [[39.73566746680331, -8.799291723872722],
+                 [39.735490749258176, -8.799880957062419],
+                 [39.73545690268953, -8.80053947054053],
+                 [39.73429987143241, -8.803849372304667]];
+        foreach ($path3 as $coords) {
+            TrackingData::create([
+                'latitude' => $coords[0],
+                'longitude' => $coords[1],
+                'device_id' => $device3['id']
             ]);
         };
     }
