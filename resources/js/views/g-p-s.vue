@@ -199,15 +199,15 @@ export default {
                     if (validLocationCheck && this.$store.getters.getRange > 0) {
                         //console.log('valid location');
                         uniqueDeviceIdArray.forEach(function(deviceId) {
-                            if (response.data.filter(data => data.device_id == deviceId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate).length > 0) {
+                            if (response.data.filter(data => data.device_id == deviceId && new Date(data.recorded_at) >= new Date(self.$store.getters.getStartDate) && new Date(data.recorded_at) <= new Date(self.$store.getters.getEndDate)).length > 0) {
                                 deviceDataMap.set(
                                     deviceId,
-                                    response.data.filter(data => data.device_id == deviceId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate)
+                                    response.data.filter(data => data.device_id == deviceId && new Date(data.recorded_at) >= new Date(self.$store.getters.getStartDate) && new Date(data.recorded_at) <= new Date(self.$store.getters.getEndDate))
                                     .map(function (data) { return [data.latitude, data.longitude]; })
                                 )
                                 deviceFullDataMap.set(
                                     deviceId,
-                                    response.data.filter(data => data.device_id == deviceId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate)
+                                    response.data.filter(data => data.device_id == deviceId && new Date(data.recorded_at) >= new Date(self.$store.getters.getStartDate) && new Date(data.recorded_at) <= new Date(self.$store.getters.getEndDate))
                                     .map(function (data) { return data; })
                                 )
                             }
@@ -402,11 +402,11 @@ export default {
     sliderChangeHandler(val){
         //console.log(val);
         if (selectedMarker != null) {
-            for (let [key, value] of deviceFullDataMap.entries()) {
-                if (value === selectedMarker){
+            markers.forEach((value, key) => {
+                if (value == selectedMarker) {
                     this.updateInfoWindowValues(key);
                 }
-            }
+            });
         }
         deviceFullDataMap.forEach((values,keys)=>{
             var sliderPosition = this.getDataClosestToSliderPosition(values, val);
@@ -520,7 +520,7 @@ export default {
             deviceFullDataMap.forEach((values,keys)=>{
                 deviceExportData.set(
                     keys,
-                    values.filter(data => data.recorded_at >= exportTimestampStart && data.recorded_at <= exportTimestampEnd)
+                    values.filter(data => new Date(data.recorded_at) >= new Date(exportTimestampStart) && new Date(data.recorded_at) <= new Date(exportTimestampEnd))
                     .map(function (data) { return data; })
                     );
             });

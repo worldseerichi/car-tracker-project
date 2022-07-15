@@ -79,6 +79,7 @@ class DatabaseSeeder extends Seeder
                 'longitude' => $coords[1],
                 'device_id' => $device['id']
             ]);
+            sleep(2);
         };
         $path2 = [[39.73385903886764, -8.824208772332776],
                  [39.73395778524304, -8.823491417392402],
@@ -95,6 +96,7 @@ class DatabaseSeeder extends Seeder
                 'longitude' => $coords[1],
                 'device_id' => $device2['id']
             ]);
+            sleep(2);
         };
         $path3 = [[39.73566746680331, -8.799291723872722],
                  [39.735490749258176, -8.799880957062419],
@@ -106,6 +108,7 @@ class DatabaseSeeder extends Seeder
                 'longitude' => $coords[1],
                 'device_id' => $device3['id']
             ]);
+            sleep(2);
         };
     }
 }
