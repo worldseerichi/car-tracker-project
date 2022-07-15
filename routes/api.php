@@ -36,12 +36,12 @@ Route::post('/postDataBatch', [MapsController::class, 'postDataBatch']);
 Route::get('/getToken', [MapsController::class, 'getToken']);
 
 //Auth
-Route::post('login-request', [AuthController::class, 'loginRequest'])->name('login-request');
-Route::post('login-request-mobile', [AuthController::class, 'loginRequestMobile'])->name('login-request-mobile');
-Route::post('login-device', [AuthController::class, 'loginRequestDeviceID'])->name('login-device');
-Route::post('registration-request', [AuthController::class, 'registrationRequest'])->name('registration-request');
-Route::post('signout', [AuthController::class, 'signOut'])->name('signout');
+Route::post('login-request', [AuthController::class, 'loginRequest']);
+Route::post('login-request-mobile', [AuthController::class, 'loginRequestMobile']);
+Route::post('login-device', [AuthController::class, 'loginRequestDeviceID']);
+Route::post('registration-request', [AuthController::class, 'registrationRequest']);
+Route::post('signout', [AuthController::class, 'signOut']);
 
 //SoftDelete and Restore
-Route::delete('users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
-Route::get('users/restore/{id}', [UserController::class, 'restore'])->name('users.restore');
+Route::delete('users/{id}', [UserController::class, 'destroy']);
+Route::get('users/restore/{id}', [UserController::class, 'restore']);
