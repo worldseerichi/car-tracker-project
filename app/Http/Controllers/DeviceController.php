@@ -1,10 +1,10 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\Rsu;
+use App\Models\Device;
 use Illuminate\Http\Request;
 
-class RsuController extends Controller
+class DeviceController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -13,8 +13,8 @@ class RsuController extends Controller
      */
     public function index()
     {
-        $rsus = Rsu::all();
-        return response()->json($rsus);
+        $devices = Device::all();
+        return response()->json($devices);
     }
 
     /**
@@ -35,13 +35,13 @@ class RsuController extends Controller
      */
     public function store(Request $request)
     {
-        $rsu = new Rsu([
+        $device = new Device([
             'range' => $request->get('range'),
             'description' => $request->get('description'),
             'user_id' => $request->get('user_id')
         ]);
-        $rsu->save();
-        return response()->json('RSU Successfully Added');
+        $device->save();
+        return response()->json('Device Successfully Added');
     }
 
     /**
@@ -63,8 +63,8 @@ class RsuController extends Controller
      */
     public function edit($id)
     {
-        $rsu = Rsu::find($id);
-        return response()->json($rsu);
+        $device = Device::find($id);
+        return response()->json($device);
     }
 
     /**
@@ -76,10 +76,10 @@ class RsuController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $rsu = Rsu::find($id);
-        $rsu->range = $request->get('range');
-        $rsu->description = $request->get('description');
-        //$rsu->user_id = $request->get('user_id');
+        $device = Device::find($id);
+        $device->range = $request->get('range');
+        $device->description = $request->get('description');
+        //$device->user_id = $request->get('user_id');
     }
 
     /**
@@ -90,9 +90,9 @@ class RsuController extends Controller
      */
     public function destroy($id)
     {
-        $rsu = Rsu::find($id);
-        $rsu->delete();
+        $device = Device::find($id);
+        $device->delete();
 
-        return response()->json("Rsu Successfully Deleted");
+        return response()->json("Device Successfully Deleted");
     }
 }

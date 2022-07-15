@@ -12,10 +12,10 @@
           <span></span>
         </span>
       </button>
-      
+
     </div>
     <div class="g-p-s1-container2" style="overflow:scroll;height:300px;width:100%;overflow:auto">
-      
+
       <table class="table table-bordered align-middle">
           <thead>
             <tr >
@@ -52,7 +52,7 @@
             username :
             <span v-html="raw04vt"></span>
           </span>
-          
+
         </label>
         <input
           type="text"
@@ -92,7 +92,7 @@
     </div>
     </form>
   </div>
-  
+
 </template>
 
 <script>
@@ -115,7 +115,7 @@ export default {
       s:[],
       username: '',
       password: '',
-      
+
       fields:['#','Quantity Of API Requests','Created At','Actions'],
     }
   },
@@ -135,39 +135,39 @@ export default {
             //response will be path coordinates of current logged in user
             if(response.data == 'No data found'){
                 console.log(response.data);
-                
+
             }else{
                   var uniqueUserIdArray;
                   var userDataMap = new Map();
-                  var userRsuMap = new Map();
-                  var rsuAmount = new Map();
+                  var userDeviceMap = new Map();
+                  var deviceAmount = new Map();
                   uniqueUserIdArray = [...new Set(response.data["users"].map(item => item.id))];
 
                   uniqueUserIdArray.forEach(function(userId) {
-                    userRsuMap.set(
+                    userDeviceMap.set(
                         userId,
-                        response.data["rsus"].filter(data => data.user_id == userId)
+                        response.data["devices"].filter(data => data.user_id == userId)
                         .map(function (data) { return data.id; })
                         )
                       });
                   const object = response.data['requestamounts'][0]
 
-                  for (const property in object) {rsuAmount.set(property,object[property])}
-                
+                  for (const property in object) {deviceAmount.set(property,object[property])}
+
                   uniqueUserIdArray.forEach(function(userId) {
 
-                  const first = [...userRsuMap.get(userId)][0]
+                  const first = [...userDeviceMap.get(userId)][0]
                     userDataMap.set(
                       userId,
                         [
                           response.data["users"].filter(data => data.id == userId)
                           .map(function (data) { return data.created_at; }),
-                          rsuAmount.get(String(first)),
+                          deviceAmount.get(String(first)),
                           response.data["users"].filter(data => data.id == userId)
                           .map(function (data) { return data.deleted_at; }),
                           response.data["users"].filter(data => data.id == userId)
                           .map(function (data) { return data.username; })
-                          
+
                         ])
                   });
                 //console.log(userDataMap);
@@ -178,7 +178,7 @@ export default {
         .catch(e => {
             console.log("getData failed due to: " + e);
         });
-    
+
     },
     forceRender(){
         this.index +=1;
@@ -195,7 +195,7 @@ export default {
                     console.log(error);
                     console.log('erro no registo');
                 });
-    
+
         },
     softdelete(userId){
       var self = this;
@@ -210,7 +210,7 @@ export default {
                     console.log(error);
                     console.log('erro no soft delete');
                 });
-            
+
     },
     restore(userId){
       var self = this;
@@ -225,16 +225,16 @@ export default {
                     console.log(error);
                     console.log('erro no soft delete');
                 });
-        
-            
-    }   
+
+
+    }
   },
   mounted(){
     this.getTabledata();
   },
   created() {
 
-        
+
   }
 }
 </script>

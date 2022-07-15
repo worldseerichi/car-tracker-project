@@ -39,10 +39,10 @@ var controlText;
 var controls;
 var snappedCoordinates = [];
 var lastPosition = new Map();
-var rsuFullDataMap = new Map();
+var deviceFullDataMap = new Map();
 var geocoder;
 var apiKey = process.env.MIX_API_KEY;
-var uniqueRsuIdArray;
+var uniqueDeviceIdArray;
 const regexExp = /^((\-?|\+?)?\d+(\.\d+)?),\s*((\-?|\+?)?\d+(\.\d+)?)$/i; // regex expression for checking valid latlng
 var coords;
 var R = 6371.0710; //radius of the earth in kilometers
@@ -53,8 +53,8 @@ var selectedMarker;
 var selectedPolyline;
 var markers = new Map();
 var polylines = new Map();
-var rsuDataMap = new Map();
-var rsuDataMapCopy = new Map();
+var deviceDataMap = new Map();
+var deviceDataMapCopy = new Map();
 var snappedCoordinatesMap = new Map();
 var snappedCoordinates = [];
 var counter = 0;
@@ -161,7 +161,7 @@ export default {
 
 
       controlDiv.addEventListener('click',() => {
-            if(rsuFullDataMap.size === 0){
+            if(deviceFullDataMap.size === 0){
                 console.log("No Data To Export");
             }else{
                 this.exportData();
@@ -180,16 +180,16 @@ export default {
                 console.log(response.data);
             }else{
                 var self = this;
-                uniqueRsuIdArray = new Set();
-                rsuDataMap = new Map();
+                uniqueDeviceIdArray = new Set();
+                deviceDataMap = new Map();
                 markers = new Map();
                 polylines = new Map();
-                rsuFullDataMap = new Map();
+                deviceFullDataMap = new Map();
                 var validLocationCheck = true;
                 this.slider.disabled = true;
                 //console.log(response);
 
-                uniqueRsuIdArray = [...new Set(response.data.map(item => item.rsu_id))];
+                uniqueDeviceIdArray = [...new Set(response.data.map(item => item.device_id))];
                 if (this.$store.getters.isFiltered) {
                     //console.log('filtered');
                     locationRange = this.$store.getters.getLocation;
@@ -198,16 +198,16 @@ export default {
                     }
                     if (validLocationCheck && this.$store.getters.getRange > 0) {
                         //console.log('valid location');
-                        uniqueRsuIdArray.forEach(function(rsuId) {
-                            if (response.data.filter(data => data.rsu_id == rsuId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate).length > 0) {
-                                rsuDataMap.set(
-                                    rsuId,
-                                    response.data.filter(data => data.rsu_id == rsuId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate)
+                        uniqueDeviceIdArray.forEach(function(deviceId) {
+                            if (response.data.filter(data => data.device_id == deviceId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate).length > 0) {
+                                deviceDataMap.set(
+                                    deviceId,
+                                    response.data.filter(data => data.device_id == deviceId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate)
                                     .map(function (data) { return [data.latitude, data.longitude]; })
                                 )
-                                rsuFullDataMap.set(
-                                    rsuId,
-                                    response.data.filter(data => data.rsu_id == rsuId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate)
+                                deviceFullDataMap.set(
+                                    deviceId,
+                                    response.data.filter(data => data.device_id == deviceId && data.recorded_at >= self.$store.getters.getStartDate && data.recorded_at <= self.$store.getters.getEndDate)
                                     .map(function (data) { return data; })
                                 )
                             }
@@ -223,7 +223,7 @@ export default {
                                 radius: this.$store.getters.getRange,
                             });
                             circles.push(rangeCircle);
-                            rsuDataMap.forEach((values,keys)=>{
+                            deviceDataMap.forEach((values,keys)=>{
                                 var shortestDistance = Number.MAX_VALUE;
                                 //check for data out of range and remove it from map
                                 values.forEach((value, index)=>{
@@ -238,7 +238,7 @@ export default {
                                     };
                                 })
                                 if (shortestDistance > this.$store.getters.getRange) {
-                                    rsuDataMap.delete(keys);
+                                    deviceDataMap.delete(keys);
                                 }
                             });
                         }
@@ -247,30 +247,30 @@ export default {
                         console.log('No data found through current filters');
                     }
                 }else{ //no filter applied
-                    uniqueRsuIdArray.forEach(function(rsuId) {
-                        rsuDataMap.set(
-                            rsuId,
-                            response.data.filter(data => data.rsu_id == rsuId)
+                    uniqueDeviceIdArray.forEach(function(deviceId) {
+                        deviceDataMap.set(
+                            deviceId,
+                            response.data.filter(data => data.device_id == deviceId)
                             .map(function (data) { return [data.latitude, data.longitude]; })
                         )
-                        rsuFullDataMap.set(
-                            rsuId,
-                            response.data.filter(data => data.rsu_id == rsuId)
+                        deviceFullDataMap.set(
+                            deviceId,
+                            response.data.filter(data => data.device_id == deviceId)
                             .map(function (data) { return data; })
                         )
                     });
                 }
 
-                //if rsuDataMap.size is 0, show toast message about no data found
+                //if deviceDataMap.size is 0, show toast message about no data found
 
                 counter = 0;
                 axiosRequestsRequired = 0; //number of requests to be made to snapToRoads API
-                rsuDataMap.forEach((values,keys)=>{
+                deviceDataMap.forEach((values,keys)=>{
                     axiosRequestsRequired += Math.ceil(values.length/100);
                 });
 
                 //snapToRoads takes up to 100 GPS points at a time, so we need to make multiple requests to snapToRoads API
-                rsuDataMap.forEach((values,keys)=>{
+                deviceDataMap.forEach((values,keys)=>{
                     do {
                         axios.get('https://roads.googleapis.com/v1/snapToRoads', { params: {
                         interpolate: true,
@@ -316,7 +316,7 @@ export default {
         });
     },
 
-    processRoadsResponse(data, rsu_id, remainingData) {
+    processRoadsResponse(data, device_id, remainingData) {
         for (var i = 0; i < data.snappedPoints.length; i++) {
             var latlng = new google.maps.LatLng(
                 data.snappedPoints[i].location.latitude,
@@ -324,7 +324,7 @@ export default {
             snappedCoordinates.push(latlng);
         }
         if (remainingData == 0) {
-            snappedCoordinatesMap.set(rsu_id, snappedCoordinates);
+            snappedCoordinatesMap.set(device_id, snappedCoordinates);
             snappedCoordinates = [];
         }
         //sets the current user's last coordinates
@@ -332,22 +332,22 @@ export default {
         lastPosition.set('lng', data.snappedPoints[data.snappedPoints.length-1].location.longitude);
     },
 
-    drawRoute(rsu_id) {
+    drawRoute(device_id) {
         polylines.set(
-          rsu_id,
+          device_id,
           new google.maps.Polyline({
-              path: snappedCoordinatesMap.get(rsu_id),
+              path: snappedCoordinatesMap.get(device_id),
               strokeColor: '#000000', //old color: #add8e6 light blue
               strokeWeight: 4,
               strokeOpacity: 0.5,
           })
         );
         //draws the route path
-        polylines.get(rsu_id).setMap(map);
+        polylines.get(device_id).setMap(map);
 
         //draws marker on the user's last position
         markers.set(
-            rsu_id,
+            device_id,
             new google.maps.Marker({
                 position: { lat: lastPosition.get('lat'), lng: lastPosition.get('lng') },
                 map: map,
@@ -355,13 +355,13 @@ export default {
                 icon: otherUsersIcon,
             })
         );
-        google.maps.event.addListener(markers.get(rsu_id), 'click', () => {this.selectMarker(rsu_id);});
-        google.maps.event.addListener(polylines.get(rsu_id), 'click', () => {this.selectMarker(rsu_id);});
+        google.maps.event.addListener(markers.get(device_id), 'click', () => {this.selectMarker(device_id);});
+        google.maps.event.addListener(polylines.get(device_id), 'click', () => {this.selectMarker(device_id);});
     },
 
     centerMap() {
         if (this.$store.getters.getLocation == '') {
-            filteredCenter = markers.get([...uniqueRsuIdArray].pop()).getPosition();
+            filteredCenter = markers.get([...uniqueDeviceIdArray].pop()).getPosition();
             map.setCenter(filteredCenter);
             map.setZoom(14);
         }else{
@@ -402,13 +402,13 @@ export default {
     sliderChangeHandler(val){
         //console.log(val);
         if (selectedMarker != null) {
-            for (let [key, value] of rsuFullDataMap.entries()) {
+            for (let [key, value] of deviceFullDataMap.entries()) {
                 if (value === selectedMarker){
                     this.updateInfoWindowValues(key);
                 }
             }
         }
-        rsuFullDataMap.forEach((values,keys)=>{
+        deviceFullDataMap.forEach((values,keys)=>{
             var sliderPosition = this.getDataClosestToSliderPosition(values, val);
             var sliderPositionIndex = values.indexOf(sliderPosition);
             var sliderPositionLatLng = new google.maps.LatLng(sliderPosition.latitude, sliderPosition.longitude);
@@ -437,7 +437,7 @@ export default {
     },
 
     setInitialMarkerRotations(){
-        rsuFullDataMap.forEach((values,keys)=>{
+        deviceFullDataMap.forEach((values,keys)=>{
             if (values.length > 1) {
                 var currentPos = values[values.length-1];
                 var previousPos = values[values.length-2];
@@ -449,13 +449,13 @@ export default {
         });
     },
 
-    selectMarker(rsu_id) {
-        if(markers.get(rsu_id) == selectedMarker){ //unselect marker when clicking a selected marker
+    selectMarker(device_id) {
+        if(markers.get(device_id) == selectedMarker){ //unselect marker when clicking a selected marker
             infowindow.close();
             selectedPolyline = null;
             selectedMarker = null;
-            markers.get(rsu_id).setIcon(otherUsersIcon);
-            polylines.get(rsu_id).setOptions({strokeColor: '#000000', strokeOpacity: 0.5});
+            markers.get(device_id).setIcon(otherUsersIcon);
+            polylines.get(device_id).setOptions({strokeColor: '#000000', strokeOpacity: 0.5});
         }else{ //select a marker and unselect others
             infowindow.close();
             markers.forEach((values,keys)=>{
@@ -464,12 +464,12 @@ export default {
             polylines.forEach((values,keys)=>{
               values.setOptions({strokeColor: '#000000', strokeOpacity: 0.5});
             });
-            markers.get(rsu_id).setIcon(mainIcon);
-            polylines.get(rsu_id).setOptions({strokeColor: '#FF0000', strokeOpacity: 0.9});
-            selectedPolyline = polylines.get(rsu_id);
-            selectedMarker = markers.get(rsu_id);
+            markers.get(device_id).setIcon(mainIcon);
+            polylines.get(device_id).setOptions({strokeColor: '#FF0000', strokeOpacity: 0.9});
+            selectedPolyline = polylines.get(device_id);
+            selectedMarker = markers.get(device_id);
 
-            this.updateInfoWindowValues(rsu_id);
+            this.updateInfoWindowValues(device_id);
             infowindow.open(map, selectedMarker);
         };
         this.setInitialMarkerRotations();
@@ -478,8 +478,8 @@ export default {
         }
     },
 
-    updateInfoWindowValues(rsu_id){
-        var currentInfo = rsuFullDataMap.get(rsu_id).reduce(function (prev, curr) {
+    updateInfoWindowValues(device_id){
+        var currentInfo = deviceFullDataMap.get(device_id).reduce(function (prev, curr) {
                 var currPos = google.maps.geometry.spherical.computeDistanceBetween(selectedMarker.getPosition(), new google.maps.LatLng(curr.latitude, curr.longitude));
                 var prevPos = google.maps.geometry.spherical.computeDistanceBetween(selectedMarker.getPosition(), new google.maps.LatLng(prev.latitude, prev.longitude));
                 return currPos < prevPos ? curr : prev;
@@ -516,17 +516,17 @@ export default {
 
     exportData(){
         if (this.$store.getters.isFiltered) {
-            var rsuExportData = new Map();
-            rsuFullDataMap.forEach((values,keys)=>{
-                rsuExportData.set(
+            var deviceExportData = new Map();
+            deviceFullDataMap.forEach((values,keys)=>{
+                deviceExportData.set(
                     keys,
                     values.filter(data => data.recorded_at >= exportTimestampStart && data.recorded_at <= exportTimestampEnd)
                     .map(function (data) { return data; })
                     );
             });
-            this.downloadObjectAsJson({ Data: Array.from(rsuExportData)} ,"TrackingData");
+            this.downloadObjectAsJson({ Data: Array.from(deviceExportData)} ,"TrackingData");
         }else{
-            this.downloadObjectAsJson({ Data: Array.from(rsuFullDataMap)} ,"TrackingData");
+            this.downloadObjectAsJson({ Data: Array.from(deviceFullDataMap)} ,"TrackingData");
         }
     },
 

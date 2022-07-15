@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
-use App\Models\Rsu;
+use App\Models\Device;
 
 class UserController extends Controller
 {
@@ -93,9 +93,9 @@ class UserController extends Controller
     public function destroy($id)
     {
         $user = User::find($id);
-        $rsu = RSu::where('user_id', $id)->first();
+        $device = Device::where('user_id', $id)->first();
         $user->delete();
-        $rsu->delete();
+        $device->delete();
 
         return "User Successfully Deleted";
     }
@@ -117,7 +117,7 @@ class UserController extends Controller
 
         $data = $request->only('username', 'password');
         $check = $this->create($data);
-        Rsu::create(['user_id' => $check['id']]);
+        Device::create(['user_id' => $check['id']]);
 
         return 'User created';
     }
@@ -125,7 +125,7 @@ class UserController extends Controller
     public function restore($id)
     {
         User::withTrashed()->find($id)->restore();
-        Rsu::withTrashed()->where('user_id', $id)->restore();
+        Device::withTrashed()->where('user_id', $id)->restore();
 
         return "User Sucessfully Restored";
     }

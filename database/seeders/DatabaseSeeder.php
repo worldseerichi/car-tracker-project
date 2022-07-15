@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use App\Models\Rsu;
+use App\Models\Device;
 use App\Models\TrackingData;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -43,11 +43,13 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('test')
         ]);
 
-        $rsu = Rsu::create([
+        $device = Device::create([
             'user_id' => $user['id'],
+            'device_id' => '123456789012345',
         ]);
-        $rsu2 = Rsu::create([
+        $device2 = Device::create([
             'user_id' => $user2['id'],
+            'device_id' => '123456789012346',
         ]);
 
         $path = [[39.74084526081704, -8.802359366435601],
@@ -71,7 +73,7 @@ class DatabaseSeeder extends Seeder
             TrackingData::create([
                 'latitude' => $coords[0],
                 'longitude' => $coords[1],
-                'rsu_id' => $rsu['id']
+                'device_id' => $device['id']
             ]);
         };
         $path2 = [[39.73385903886764, -8.824208772332776],
@@ -87,7 +89,7 @@ class DatabaseSeeder extends Seeder
             TrackingData::create([
                 'latitude' => $coords[0],
                 'longitude' => $coords[1],
-                'rsu_id' => $rsu2['id']
+                'device_id' => $device2['id']
             ]);
         };
     }

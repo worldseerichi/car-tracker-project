@@ -32,9 +32,9 @@ class User extends Authenticatable
         'password',
     ];
 
-    public function rsu() {
-        return $this->hasOne('App\Models\Rsu')->withTrashed();        
+    public function device() {
+        return $this->hasMany('App\Models\Device')->withTrashed();
     }
-    
+
 
 }

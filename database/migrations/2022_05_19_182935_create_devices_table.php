@@ -13,8 +13,9 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('rsus', function (Blueprint $table) {
+        Schema::create('devices', function (Blueprint $table) {
             $table->id();
+            $table->string('device_id')->unique();
             $table->integer('range')->default(300);
             $table->string('description')->nullable();
             $table->foreignId('user_id')->constrained('users');
@@ -32,6 +33,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('rsus');
+        Schema::dropIfExists('devices');
     }
 };

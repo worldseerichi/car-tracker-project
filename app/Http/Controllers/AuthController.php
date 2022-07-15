@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Rsu;
+use App\Models\Device;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
@@ -42,10 +42,10 @@ class AuthController extends Controller
         $username = $request->input('username');
         $password = $request->input('password');
         if (Auth::attempt(['username' => $username, 'password' => $password, 'is_admin' => 0])) {
-            $rsu = Rsu::where('user_id', Auth::user()->id)->firstOr(function () {
-                return 'RSU not found';
+            $device = Device::where('user_id', Auth::user()->id)->firstOr(function () {
+                return 'Device not found';
             });
-            return $rsu['id'];
+            return $device['id'];
         }
 
         return 'Login failed';
@@ -71,7 +71,7 @@ class AuthController extends Controller
 
         $data = $request->only('username', 'password');
         $check = $this->create($data);
-        Rsu::create(['user_id' => $check['id']]);
+        //Device::create(['user_id' => $check['id']]);
 
         return 'User created';
     }

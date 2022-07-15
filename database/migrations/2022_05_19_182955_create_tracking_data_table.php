@@ -26,7 +26,7 @@ return new class extends Migration
             $table->double('acel_x')->default(0);
             $table->double('acel_y')->default(0);
             $table->double('acel_z')->default(0);
-            $table->foreignId('rsu_id')->constrained('rsus');
+            $table->foreignId('device_id')->constrained('devices');
             $table->timestamp('recorded_at')->useCurrent();
             $table->timestamps();
             $table->softDeletes();

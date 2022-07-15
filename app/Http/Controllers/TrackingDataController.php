@@ -47,7 +47,7 @@ class TrackingDataController extends Controller
             'acel_x' => $request->get('acel_x'),
             'acel_y' => $request->get('acel_y'),
             'acel_z' => $request->get('acel_z'),
-            'rsu_id' => $request->get('rsu_id'),
+            'device_id' => $request->get('device_id'),
         ]);
         $newdata->save();
         return response()->json('Tracking Data Successfully Added');
@@ -97,7 +97,7 @@ class TrackingDataController extends Controller
         $newdata->acel_x = $request->get('acel_x');
         $newdata->acel_y = $request->get('acel_y');
         $newdata->acel_z = $request->get('acel_z');
-        //$newdata->rsu_id = $request->get('rsu_id');
+        //$newdata->device_id = $request->get('device_id');
 ;
     }
 

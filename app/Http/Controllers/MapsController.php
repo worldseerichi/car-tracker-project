@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
 use App\Models\User;
-use App\Models\Rsu;
+use App\Models\Device;
 use App\Models\TrackingData;
 use \DateTime;
 
@@ -22,21 +22,8 @@ class MapsController extends Controller
 
     public function getData()
     {
-
-        //DB queries and etc go here
-        /*if(Auth::id() == '' || Auth::id() == 1) { //stop admin user and unauthenticated users from accessing g-p-s route
-            return 'No data found'; //remove this when we have functional middleware
-        }
-        //$rsu = Rsu::where('user_id', Auth::id())->get(); //doesnt work, see how to query table using foreign key below
-        $rsu = User::with('rsu')->find(Auth::id())->rsu; //get rsu connected to the authenticated user
-
-        $data = Rsu::with('trackingdata')->find($rsu['id'])->trackingdata->take(100);
-
-        if(count($data) == 0){
-            return 'No data found';
-        };*/
-        $validRsus = Rsu::pluck('id')->toArray();
-        $data = TrackingData::whereIn('rsu_id', $validRsus)->get();
+        $validDevices = Device::pluck('id')->toArray();
+        $data = TrackingData::whereIn('device_id', $validDevices)->get();
 
         if(count($data) == 0){
             return 'No data found';
@@ -67,25 +54,25 @@ class MapsController extends Controller
         $start = new DateTime($request->input('start_date'));
         $end = new DateTime($request->input('end_date'));
 
-        $validRsus = Rsu::pluck('id')->toArray();
+        $validDevices = Device::pluck('id')->toArray();
 
-        $data = TrackingData::whereIn('rsu_id', $validRsus)->whereBetween('recorded_at', [$start, $end])->get();
+        $data = TrackingData::whereIn('device_id', $validDevices)->whereBetween('recorded_at', [$start, $end])->get();
         if(count($data) == 0){
             return 'No data found';
         };
-        $rsus = TrackingData::whereIn('rsu_id', $validRsus)->select('rsu_id')->distinct()->get();
-        $rsuData = [];
+        $devices = TrackingData::whereIn('device_id', $validDevices)->select('device_id')->distinct()->get();
+        $deviceData = [];
 
-        foreach ($rsus as $value) {
-            $rsuData[$value['rsu_id']] = $data->filter(function($data) use ($value)
+        foreach ($devices as $value) {
+            $deviceData[$value['device_id']] = $data->filter(function($data) use ($value)
             {
-               return $data->rsu_id == $value['rsu_id'];
+               return $data->device_id == $value['device_id'];
             });
         };
 
         $earthRadius = 6371000; //meters
 
-        foreach ($rsuData as $key => $values) {
+        foreach ($deviceData as $key => $values) {
             $shortestDistance = 6371000;
             foreach ($values as $data) {
                 $latFrom = deg2rad(floatval($location[0]));
@@ -103,61 +90,33 @@ class MapsController extends Controller
                 }
             }
             if ($shortestDistance > $range) {
-                unset($rsuData[$key]);
+                unset($deviceData[$key]);
             }
         }
 
-        return $rsuData;
+        return $deviceData;
     }
-
-    /*public function getAdjacentData(){
-        $rsu = User::with('rsu')->find(Auth::id())->rsu;
-
-        $data = TrackingData::orderBy('id', 'DESC')->get();
-
-        if(count($data) == 0){
-            return 'No data found';
-        };
-        //var_dump($data);
-
-        $filteredData = $data->filter(function($item) use($rsu) { //removes data from authenticated user
-            return $item->rsu_id != $rsu['id'];
-        });
-        if(count($filteredData) == 0){
-            return 'No data found';
-        };
-        $uniqueRsus = [];
-        $lastCoordsRsus = $filteredData->filter(function($data) use (&$uniqueRsus) //gets last data from each user
-        {
-            $duplicate = in_array($data->rsu_id, $uniqueRsus);
-            if(!$duplicate) {
-                $uniqueRsus[] = $data->rsu_id;
-            }
-            return !$duplicate;
-        })->values();
-        return $lastCoordsRsus;
-    }*/
 
     public function getDataCounted(){
         //amount TrackingData::count();
         $QntOfDataAPI = [];
-        $rsus = Rsu::withTrashed()->get();
-        $rsusCounter = count(TrackingData::select('rsu_id')->distinct()->get());
+        $devices = Device::withTrashed()->get();
+        $devicesCounter = count(TrackingData::select('device_id')->distinct()->get());
         $data = TrackingData::get();
         if(count($data) == 0){
             return 'No data found';
         };
-        if($rsusCounter==0){
+        if($devicesCounter==0){
             $QntOfDataAPI = "Empty";
         }else{
-            for ($i = 1; $i <= $rsusCounter; $i++) {
-                $QntOfDataAPI[$i] = count(TrackingData::where("rsu_id", $i )->get());
+            for ($i = 1; $i <= $devicesCounter; $i++) {
+                $QntOfDataAPI[$i] = count(TrackingData::where("device_id", $i )->get());
             }
         }
 
 
         $users = User::withTrashed()->where('is_admin', 0)->get();
-        return array('requestamounts' => array($QntOfDataAPI), 'rsus' => $rsus, 'users' => $users);
+        return array('requestamounts' => array($QntOfDataAPI), 'devices' => $devices, 'users' => $users);
     }
 
 
@@ -179,7 +138,7 @@ class MapsController extends Controller
             'data.*.acel_x' => 'required|numeric',
             'data.*.acel_y' => 'required|numeric',
             'data.*.acel_z' => 'required|numeric',
-            'data.*.rsu_id' => 'required|numeric',
+            'data.*.device_id' => 'required|numeric',
             'data.*.recorded_at' => 'required|date'
         ]);
         foreach ($request->get('data') as $data) {
@@ -201,13 +160,13 @@ class MapsController extends Controller
             'acel_x' => 'required|numeric',
             'acel_y' => 'required|numeric',
             'acel_z' => 'required|numeric',
-            'rsu_id' => 'required|numeric',
+            'device_id' => 'required|numeric',
             'recorded_at' => 'required|date'
         ]);
-        Rsu::where('id', $request->get('rsu_id'))->firstOr(function () {
-            return 'RSU not found';
+        Device::where('id', $request->get('device_id'))->firstOr(function () {
+            return 'Device not found';
         });
-        $data = $request->only('latitude', 'longitude','altitude','bearing','velocity','gir_x','gir_y','gir_z','acel_x','acel_y','acel_z','rsu_id','recorded_at');
+        $data = $request->only('latitude', 'longitude','altitude','bearing','velocity','gir_x','gir_y','gir_z','acel_x','acel_y','acel_z','device_id','recorded_at');
         $this->create($data);
         return 'Data added';
     }
@@ -226,7 +185,7 @@ class MapsController extends Controller
         'acel_x'        => $data['acel_x'],
         'acel_y'        => $data['acel_y'],
         'acel_z'        => $data['acel_z'],
-        'rsu_id'        => $data['rsu_id'],
+        'device_id'        => $data['device_id'],
         'recorded_at'   => $data['recorded_at']
       ]);
     }
