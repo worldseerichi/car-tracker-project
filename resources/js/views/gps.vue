@@ -571,7 +571,14 @@ export default {
             circles = [];
             this.getRouteData();
         }
-    }
+    },
+    '$store.state.adminLogged': {
+        handler() {
+            if (this.$store.getters.getAdminLogged == false) {
+                this.$router.push('/login');
+            };
+        }
+    },
   }
 }
 </script>

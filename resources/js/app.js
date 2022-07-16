@@ -26,6 +26,9 @@ const router = VueRouter.createRouter({
             name: 'GPS',
             path: '/gps',
             component: GPS,
+            meta: {
+                middleware: auth,
+            },
         },
         {
             name: 'Home',
