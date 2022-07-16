@@ -42,7 +42,7 @@ var lastPosition = new Map();
 var deviceFullDataMap = new Map();
 var geocoder;
 var apiKey = process.env.MIX_API_KEY;
-var uniqueDeviceIdArray;
+var uniqueDeviceIdArray = new Set();
 const regexExp = /^((\-?|\+?)?\d+(\.\d+)?),\s*((\-?|\+?)?\d+(\.\d+)?)$/i; // regex expression for checking valid latlng
 var coords;
 var R = 6371.0710; //radius of the earth in kilometers
@@ -61,6 +61,7 @@ var counter = 0;
 var axiosRequestsRequired = 0;
 var exportTimestampStart = 0;
 var exportTimestampEnd = 0;
+var deviceExportData = new Map();
 var infowindow;
 
 
@@ -173,13 +174,14 @@ export default {
     },
 
     getRouteData() {
+        var self = this;
         axios.get('api/getData').then(response => {
+            //console.log('------------------------------');
             //console.log(response);
             //response will be path coordinates of current logged in user
             if(response.data == 'No data found'){
                 console.log(response.data);
             }else{
-                var self = this;
                 uniqueDeviceIdArray = new Set();
                 deviceDataMap = new Map();
                 markers = new Map();
@@ -190,13 +192,13 @@ export default {
                 //console.log(response);
 
                 uniqueDeviceIdArray = [...new Set(response.data.map(item => item.device_id))];
-                if (this.$store.getters.isFiltered) {
+                if (self.$store.getters.isFiltered) {
                     //console.log('filtered');
-                    locationRange = this.$store.getters.getLocation;
+                    locationRange = self.$store.getters.getLocation;
                     if (locationRange != '') {
                         validLocationCheck = this.centerMap();
                     }
-                    if (validLocationCheck && this.$store.getters.getRange > 0) {
+                    if (validLocationCheck && self.$store.getters.getRange > 0) {
                         //console.log('valid location');
                         uniqueDeviceIdArray.forEach(function(deviceId) {
                             if (response.data.filter(data => data.device_id == deviceId && new Date(data.recorded_at) >= new Date(self.$store.getters.getStartDate) && new Date(data.recorded_at) <= new Date(self.$store.getters.getEndDate)).length > 0) {
@@ -211,6 +213,7 @@ export default {
                                     .map(function (data) { return data; })
                                 )
                             }
+                            //console.log('filtering');
                         });
                         if (locationRange != '') {
                             const rangeCircle = new google.maps.Circle({
@@ -220,7 +223,7 @@ export default {
                                 fillOpacity: 0,
                                 map,
                                 center: filteredCenter,
-                                radius: this.$store.getters.getRange,
+                                radius: self.$store.getters.getRange,
                             });
                             circles.push(rangeCircle);
                             deviceDataMap.forEach((values,keys)=>{
@@ -237,8 +240,10 @@ export default {
                                         shortestDistance = distance;
                                     };
                                 })
-                                if (shortestDistance > this.$store.getters.getRange) {
+                                //console.log('key: ' + keys + ' shortestDistance: ' + shortestDistance);
+                                if (shortestDistance > self.$store.getters.getRange) {
                                     deviceDataMap.delete(keys);
+                                    deviceFullDataMap.delete(keys);
                                 }
                             });
                         }
@@ -262,7 +267,6 @@ export default {
                 }
 
                 //if deviceDataMap.size is 0, show toast message about no data found
-
                 counter = 0;
                 axiosRequestsRequired = 0; //number of requests to be made to snapToRoads API
                 deviceDataMap.forEach((values,keys)=>{
@@ -279,6 +283,7 @@ export default {
                         }
                         }).then(response => {
                             counter++;
+
                             //response is a set of coordinates snapped to the nearest road for accuracy purposes
                             this.processRoadsResponse(response.data, keys, values.length);
 
@@ -287,13 +292,13 @@ export default {
                             }
                             //runs in last axios request
                             if (counter == axiosRequestsRequired) {
-                                if (this.$store.getters.getLocation == '') {
+                                if (self.$store.getters.getLocation == '') {
                                     this.centerMap();
                                 };
 
                                 this.setInitialMarkerRotations();
 
-                                if (this.$store.getters.isFiltered) {
+                                if (self.$store.getters.isFiltered) {
                                     controls.style.visibility = 'visible';
                                     this.setSliderValues();
                                 }
@@ -516,7 +521,7 @@ export default {
 
     exportData(){
         if (this.$store.getters.isFiltered) {
-            var deviceExportData = new Map();
+            deviceExportData = new Map();
             deviceFullDataMap.forEach((values,keys)=>{
                 deviceExportData.set(
                     keys,
@@ -551,12 +556,15 @@ export default {
         handler() {
             controls.style.visibility = 'hidden';
             //console.log("filter changed");
+            selectedMarker = null;
             markers.forEach((values,keys)=>{
               values.setMap(null);
             });
+            markers = new Map();
             polylines.forEach((values,keys)=>{
               values.setMap(null);
             });
+            polylines = new Map();
             circles.forEach((circle) => {
                 circle.setMap(null);
             });
