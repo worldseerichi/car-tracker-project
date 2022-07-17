@@ -5,28 +5,28 @@
         <span class="sidebar-text"><span>VT Sidebar</span></span>
       </nav>
       <nav class="sidebar-filter-options" v-show="this.$route.fullPath == '/gps'">
-        <span class="sidebar-location"><span>Location in format: lat,lng</span></span>
-        <input
+        <span class="sidebar-location"><span>Location in format: Lat,Lng<br/>Ex: 39.7390615,-8.8170667</span></span>
+        <input id="inputs"
           type="text"
           :placeholder="textinput_placeholder"
           v-model="filter.location"
           class="sidebar-location-input input"
         />
         <span class="sidebar-range"><span>Range (meters)</span></span>
-        <input
+        <input id="inputs"
           type="number"
           :placeholder="textinput_placeholder1"
           v-model="filter.range"
           class="sidebar-range-input input"
         />
         <span class="sidebar-start-date-time">Start Date and Time</span>
-        <input
+        <input id="inputs"
           type="datetime-local"
           v-model="filter.start_date"
           class="sidebar-start-date-time-input input"
         />
         <span class="sidebar-end-date-time">End Date and Time</span>
-        <input
+        <input id="inputs"
           type="datetime-local"
           v-model="filter.end_date"
           class="sidebar-end-date-time-input input"
@@ -388,6 +388,11 @@ export default {
   fill: var(--dl-color-gray-white);
   height: 24px;
   align-self: flex-end;
+}
+#inputs {
+    width: 97%;
+    margin: auto;
+    padding: 0;
 }
 @media(max-width: 767px) {
   .sidebar-sidebar {

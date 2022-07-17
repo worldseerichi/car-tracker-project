@@ -37,8 +37,9 @@ var controlDiv;
 var controlText;
 //
 var controls;
-var snappedCoordinates = [];
-var lastPosition = new Map();
+var snappedCoordinatesArrayMap = new Map();
+var firstPositionMap = new Map();
+var lastPositionMap = new Map();
 var deviceFullDataMap = new Map();
 var geocoder;
 var apiKey = process.env.MIX_API_KEY;
@@ -51,6 +52,7 @@ var filteredCenter;
 var circles = [];
 var selectedMarker;
 var selectedPolyline;
+var startPosMarkers = new Map();
 var markers = new Map();
 var polylines = new Map();
 var deviceDataMap = new Map();
@@ -59,6 +61,8 @@ var snappedCoordinatesMap = new Map();
 var snappedCoordinates = [];
 var counter = 0;
 var axiosRequestsRequired = 0;
+var deviceRequestsRequiredMap = new Map();
+var deviceRequestCounterMap = new Map();
 var exportTimestampStart = 0;
 var exportTimestampEnd = 0;
 var deviceExportData = new Map();
@@ -90,6 +94,25 @@ var mainIcon = {
     scale: .75,
     anchor: new google.maps.Point(25,25),
     rotation: 55
+}
+var startPosIcon = {
+    path: "M1045 5114 c-128 -27 -207 -68 -287 -147 -32 -33 -73 -87 -89 -120 " +
+        "-61 -121 -59 -30 -59 -1937 l-1 -1745 -72 -34 c-129 -62 -246 -199 -296 -348 "+
+        "-111 -331 102 -696 449 -769 143 -30 238 -3 291 83 19 30 24 52 24 103 0 117 "+
+        "-62 181 -195 200 -85 12 -130 38 -170 97 -20 30 -25 49 -25 103 0 77 24 122 "+
+       "89 168 33 23 50 27 106 27 56 0 73 -4 106 -27 58 -41 82 -83 94 -167 12 -87 "+
+        "37 -132 93 -169 34 -23 52 -27 107 -27 55 0 73 4 107 27 22 15 51 44 64 65 21 "+
+        "33 24 49 23 128 -2 155 -58 281 -178 401 -51 50 -92 80 -143 105 l-73 34 3 "+
+        "1747 2 1748 28 27 c55 55 33 64 982 -379 479 -223 887 -414 908 -424 41 -20 "+
+        "47 -38 17 -54 -10 -5 -346 -147 -746 -315 -493 -207 -737 -314 -757 -333 -105 "+
+        "-98 -81 -258 47 -324 80 -41 84 -40 896 301 410 172 767 326 793 343 81 52 "+
+        "153 158 176 258 34 146 -17 301 -132 406 -48 44 -152 95 -988 483 -514 239 "+
+        "-963 443 -999 452 -61 17 -149 22 -195 13z",
+    fillColor: 'blue',
+    fillOpacity: 1,
+    scale: .006,
+    anchor: new google.maps.Point(25,25),
+    rotation: 180
 }
 
 export default {
@@ -184,9 +207,15 @@ export default {
             }else{
                 uniqueDeviceIdArray = new Set();
                 deviceDataMap = new Map();
+                startPosMarkers = new Map();
                 markers = new Map();
                 polylines = new Map();
                 deviceFullDataMap = new Map();
+                deviceRequestsRequiredMap = new Map();
+                deviceRequestCounterMap = new Map();
+                snappedCoordinatesArrayMap = new Map();
+                lastPositionMap = new Map();
+                firstPositionMap = new Map();
                 var validLocationCheck = true;
                 this.slider.disabled = true;
                 //console.log(response);
@@ -267,52 +296,59 @@ export default {
                 }
 
                 //if deviceDataMap.size is 0, show toast message about no data found
-                counter = 0;
-                axiosRequestsRequired = 0; //number of requests to be made to snapToRoads API
+
                 deviceDataMap.forEach((values,keys)=>{
-                    axiosRequestsRequired += Math.ceil(values.length/100);
+                    deviceRequestsRequiredMap.set(keys,Math.ceil(values.length/100));
+                    deviceRequestCounterMap.set(keys,0);
+                    snappedCoordinatesArrayMap.set(keys,[]);
                 });
-
                 //snapToRoads takes up to 100 GPS points at a time, so we need to make multiple requests to snapToRoads API
-                deviceDataMap.forEach((values,keys)=>{
-                    do {
-                        axios.get('https://roads.googleapis.com/v1/snapToRoads', { params: {
-                        interpolate: true,
-                        key: apiKey,
-                        path: values.slice(-100).join('|')
-                        }
-                        }).then(response => {
-                            counter++;
+                (async () => {
+                    for (const [key, values] of deviceDataMap.entries()) {
+                        do {
+                            try {
+                                deviceRequestCounterMap.set(key,deviceRequestCounterMap.get(key)+1);
+                                //console.log('starting axios of device ' + key);
+                                let response = await axios.get('https://roads.googleapis.com/v1/snapToRoads', { params: {
+                                    interpolate: true,
+                                    key: apiKey,
+                                    path: values.slice(-100).join('|')
+                                    }
+                                });
+                                if (response.status == 200) {
+                                    //console.log('inside axios of device ' + key);
+                                    //response is a set of coordinates snapped to the nearest road for accuracy purposes
+                                    this.processRoadsResponse(response.data, key);
 
-                            //response is a set of coordinates snapped to the nearest road for accuracy purposes
-                            this.processRoadsResponse(response.data, keys, values.length);
-
-                            if (values.length == 0) { //possible issue with big data due to funky javascript race conditions
-                                this.drawRoute(keys);
-                            }
-                            //runs in last axios request
-                            if (counter == axiosRequestsRequired) {
-                                if (self.$store.getters.getLocation == '') {
-                                    this.centerMap();
-                                };
-
-                                this.setInitialMarkerRotations();
-
-                                if (self.$store.getters.isFiltered) {
-                                    controls.style.visibility = 'visible';
-                                    this.setSliderValues();
+                                }else{
+                                    console.log('Some error occurred in snapToRoads: ' + response);
                                 }
+                            } catch (error) {
+                                console.log("snapToRoads failed due to: " + error);
                             };
-                        })
-                        .catch(e => {
-                            console.log("snapToRoads failed due to: " + e);
-                        });
-                        if (values.length >= 100) {
-                            values.splice(values.length-100, 100);
-                        } else {
-                            values.splice(0, values.length);
-                        }
-                    }while (values.length > 0);
+                            //console.log('after awaited axios of device '+ key);
+                            if (values.length >= 100) {
+                                values.splice(values.length-100, 100);
+                            } else {
+                                values.splice(0, values.length);
+                                this.drawRoute(key); //draw route once all data is processed
+                            }
+                        }while (values.length > 0);
+                    }
+                })().then(() => {
+                    //runs after all axios requests are completed
+                    if (self.$store.getters.getLocation == '') {
+                        this.centerMap();
+                    };
+
+                    this.setInitialMarkerRotations();
+
+                    if (self.$store.getters.isFiltered) {
+                        controls.style.visibility = 'visible';
+                        this.setSliderValues();
+                    }
+                }).catch(error => {
+                    console.log('Error in async anonymous function: ' + error);
                 });
             };
         })
@@ -321,23 +357,40 @@ export default {
         });
     },
 
-    processRoadsResponse(data, device_id, remainingData) {
-        for (var i = 0; i < data.snappedPoints.length; i++) {
+    processRoadsResponse(data, device_id) {
+        for (var i = data.snappedPoints.length-1; i >= 0; i--) {
             var latlng = new google.maps.LatLng(
                 data.snappedPoints[i].location.latitude,
-                data.snappedPoints[i].location.longitude);
-            snappedCoordinates.push(latlng);
+                data.snappedPoints[i].location.longitude
+            );
+            snappedCoordinatesArrayMap.get(device_id).unshift(latlng);
         }
-        if (remainingData == 0) {
-            snappedCoordinatesMap.set(device_id, snappedCoordinates);
-            snappedCoordinates = [];
+        if (deviceRequestCounterMap.get(device_id) == deviceRequestsRequiredMap.get(device_id)) {
+            lastPositionMap.set(
+                device_id,
+                [parseFloat(snappedCoordinatesArrayMap.get(device_id)[snappedCoordinatesArrayMap.get(device_id).length-1].toString().split(', ')[0].replace('(','')),
+                parseFloat(snappedCoordinatesArrayMap.get(device_id)[snappedCoordinatesArrayMap.get(device_id).length-1].toString().split(', ')[1].replace(')',''))]
+            );
+            firstPositionMap.set(
+                device_id,
+                [parseFloat(snappedCoordinatesArrayMap.get(device_id)[0].toString().split(', ')[0].replace('(','')),
+                parseFloat(snappedCoordinatesArrayMap.get(device_id)[0].toString().split(', ')[1].replace(')',''))]
+            );
+            snappedCoordinatesMap.set(device_id, snappedCoordinatesArrayMap.get(device_id));
         }
-        //sets the current user's last coordinates
-        lastPosition.set('lat', data.snappedPoints[data.snappedPoints.length-1].location.latitude);
-        lastPosition.set('lng', data.snappedPoints[data.snappedPoints.length-1].location.longitude);
     },
 
     drawRoute(device_id) {
+        startPosMarkers.set(
+            device_id,
+            new google.maps.Marker({
+                position: { lat: firstPositionMap.get(device_id)[0], lng: firstPositionMap.get(device_id)[1] },
+                map: map,
+                draggable: false,
+                icon: startPosIcon,
+            })
+        );
+
         polylines.set(
           device_id,
           new google.maps.Polyline({
@@ -354,12 +407,13 @@ export default {
         markers.set(
             device_id,
             new google.maps.Marker({
-                position: { lat: lastPosition.get('lat'), lng: lastPosition.get('lng') },
+                position: { lat: lastPositionMap.get(device_id)[0], lng: lastPositionMap.get(device_id)[1] },
                 map: map,
                 draggable: false,
                 icon: otherUsersIcon,
             })
         );
+        google.maps.event.addListener(startPosMarkers.get(device_id), 'click', () => {this.selectMarker(device_id);});
         google.maps.event.addListener(markers.get(device_id), 'click', () => {this.selectMarker(device_id);});
         google.maps.event.addListener(polylines.get(device_id), 'click', () => {this.selectMarker(device_id);});
     },
@@ -557,6 +611,9 @@ export default {
             controls.style.visibility = 'hidden';
             //console.log("filter changed");
             selectedMarker = null;
+            startPosMarkers.forEach((values,keys)=>{
+                values.setMap(null);
+            });
             markers.forEach((values,keys)=>{
               values.setMap(null);
             });
