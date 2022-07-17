@@ -504,6 +504,7 @@ export default {
                 var previousPosLatLng = new google.maps.LatLng(previousPos.latitude, previousPos.longitude);
                 var heading = google.maps.geometry.spherical.computeHeading(previousPosLatLng, currentPosLatLng);
                 markers.get(keys).getIcon().rotation = heading;
+                markers.get(keys).setIcon(markers.get(keys).getIcon());
             }
         });
     },

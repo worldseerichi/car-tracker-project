@@ -103,28 +103,6 @@ class UserController extends Controller
         return "User Successfully Deleted";
     }
 
-    public function registrationRequest(Request $request)
-    {
-        $request->validate([
-            'username' => 'required',
-            'password' => 'required|min:4',
-        ]);
-
-        $userCheck = User::where('username', $request->get('username'))->firstOr(function () {
-            return 'Not found';
-        });
-
-        if($userCheck != 'Not found'){
-            return 'User already exists';
-        }
-
-        $data = $request->only('username', 'password');
-        $check = $this->create($data);
-        Device::create(['user_id' => $check['id']]);
-
-        return 'User created';
-    }
-
     public function restore($id)
     {
         User::withTrashed()->find($id)->restore();
