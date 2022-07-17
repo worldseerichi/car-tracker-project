@@ -532,7 +532,6 @@ export default {
             this.updateInfoWindowValues(device_id);
             infowindow.open(map, selectedMarker);
         };
-        this.setInitialMarkerRotations();
         if (this.$store.getters.isFiltered) {
             this.sliderChangeHandler(this.slider.value);
         }
@@ -583,6 +582,11 @@ export default {
                     values.filter(data => new Date(data.recorded_at) >= new Date(exportTimestampStart) && new Date(data.recorded_at) <= new Date(exportTimestampEnd))
                     .map(function (data) { return data; })
                     );
+            });
+            deviceExportData.forEach((values,keys)=>{
+                if (values.length == 0) {
+                    deviceExportData.delete(keys);
+                }
             });
             this.downloadObjectAsJson({ Data: Array.from(deviceExportData)} ,"TrackingData");
         }else{
