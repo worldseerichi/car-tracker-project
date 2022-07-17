@@ -5,7 +5,7 @@
     </div>
     <div class="g-p-s1-container1">
       <span class="g-p-s1-text">User Managment</span>
-      <button @click="this.getTabledata" class="g-p-s1-button button">
+      <button @click="this.getTableData" class="g-p-s1-button button">
         <span class="g-p-s1-text01">
           <span class="g-p-s1-text02">Refresh</span>
           <br />
@@ -34,7 +34,7 @@
                <th v-if="s[1][1]!= null">{{s[1][1]}}</th><th v-else>0</th>
                <th v-if="s[1][2]!= null">{{s[1][2]}}</th><th v-else>0</th>
                <th>{{s[1][0][0].substring(0,s[1][0][0].indexOf('T'))}}</th>
-               <th v-if="s[1][3][0]==null"><button type="button" @click="this.softdelete(s[0])" class="btn btn-link btn-sm px-3" data-ripple-color="dark">
+               <th v-if="s[1][3][0]==null"><button type="button" @click="this.softDelete(s[0])" class="btn btn-link btn-sm px-3" data-ripple-color="dark">
                   Delete
                 </button></th><th v-else><button type="button" @click="this.restore(s[0])" class="btn btn-link btn-sm px-3" data-ripple-color="dark">
                   Restore
@@ -51,7 +51,7 @@
       <div class="g-p-s1-container4">
         <label class="g-p-s1-text02">
           <span>
-            username :
+            Username :
             <span v-html="raw04vt"></span>
           </span>
 
@@ -70,7 +70,7 @@
       <div class="g-p-s1-container5">
         <label class="g-p-s1-text04">
           <span>
-            password :
+            Password :
             <span v-html="rawa29k"></span>
           </span>
         </label>
@@ -86,7 +86,7 @@
       </div>
       <button type="submit" class="g-p-s1-button2 button">
         <span class="g-p-s1-text06">
-          <span class="g-p-s1-text07">Create Account</span>
+          <span class="g-p-s1-text07" style="text-transform: none;">Create Account</span>
           <br />
           <span></span>
         </span>
@@ -131,7 +131,7 @@ export default {
     ],
   },
   methods:{
-     getTabledata: function(){
+     getTableData: function(){
         axios.get('api/getDataCounted').then(response => {
             //console.log(response);
             //response will be path coordinates of current logged in user
@@ -189,16 +189,13 @@ export default {
         });
 
     },
-    forceRender(){
-        this.index +=1;
-    },
     register: function () {
             var self = this;
             axios.post('api/registration-request', { username: this.username, password: this.password })
                 .then(function (response) {
                     console.log(response);
                     //implement something to tell the user an account was created~
-                    self.getTabledata();
+                    self.getTableData();
                 })
                 .catch(function (error) {
                     console.log(error);
@@ -206,13 +203,13 @@ export default {
                 });
 
         },
-    softdelete(userId){
+    softDelete(userId){
       var self = this;
       console.log(userId);
       axios.delete('api/users/'+userId)
                 .then(function (response) {
                     console.log(response);
-                    self.getTabledata();
+                    self.getTableData();
                     //implement something to tell the user an account was created
                 })
                 .catch(function (error) {
@@ -227,7 +224,7 @@ export default {
       axios.get('api/users/restore/'+userId)
                 .then(function (response) {
                     console.log(response);
-                    self.getTabledata();
+                    self.getTableData();
                     //implement something to tell the user an account was created
                 })
                 .catch(function (error) {
@@ -239,7 +236,7 @@ export default {
     }
   },
   mounted(){
-    this.getTabledata();
+    this.getTableData();
   },
   created() {
 

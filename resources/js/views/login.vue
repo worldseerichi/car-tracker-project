@@ -46,13 +46,13 @@
             <span></span>
           </span>
         </button>
-        <button class="login-button1 button">
+        <button type="button" class="login-button1 button">
           <span class="login-text11">
             <span>Recover Password</span>
             <br />
             <span></span>
           </span>
-        </button>~
+        </button>
        <div>{{$store.getters.getKey}}</div>
       </div>
     </form>
