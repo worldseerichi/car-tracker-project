@@ -341,7 +341,7 @@ export default {
                         this.centerMap();
                     };
 
-                    this.setInitialMarkerRotations();
+                    this.setMarkerRotations();
 
                     if (self.$store.getters.isFiltered) {
                         controls.style.visibility = 'visible';
@@ -495,7 +495,7 @@ export default {
         marker.setIcon(marker.getIcon());
     },
 
-    setInitialMarkerRotations(){
+    setMarkerRotations(){
         deviceFullDataMap.forEach((values,keys)=>{
             if (values.length > 1) {
                 var currentPos = values[values.length-1];
@@ -532,6 +532,7 @@ export default {
             this.updateInfoWindowValues(device_id);
             infowindow.open(map, selectedMarker);
         };
+        this.setMarkerRotations();
         if (this.$store.getters.isFiltered) {
             this.sliderChangeHandler(this.slider.value);
         }
