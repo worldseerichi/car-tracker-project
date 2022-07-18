@@ -55,8 +55,22 @@ class DatabaseSeeder extends Seeder
             'user_id' => $user['id'],
             'device_id' => '123123123123123',
         ]);
+        $device4 = Device::create([
+            'user_id' => $user2['id'],
+            'device_id' => '321321321321321',
+        ]);
 
-        $path = [[39.74084526081704, -8.802359366435601],
+        $device5 = Device::create([
+            'user_id' => $user['id'],
+            'device_id' => '121212121212121',
+        ]);
+
+        $device6 = Device::create([
+            'user_id' => $user['id'],
+            'device_id' => '323232323232323',
+        ]);
+
+        /*$path = [[39.74084526081704, -8.802359366435601],
                 [39.74004168723268, -8.804373422691963],
                 [39.73980177796016, -8.805855464918467],
                 [39.73957817225259, -8.808845159503642],
@@ -109,6 +123,6 @@ class DatabaseSeeder extends Seeder
                 'device_id' => $device3['id']
             ]);
             sleep(2);
-        };
+        };*/
     }
 }

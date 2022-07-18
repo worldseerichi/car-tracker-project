@@ -28,6 +28,7 @@ import 'vue-slider-component/theme/default.css'
 import axios from 'axios';
 
 var map;
+var controller;
 /*var controlDiv;
 var controlUI;
 var controlText;*/
@@ -198,7 +199,8 @@ export default {
 
     getRouteData() {
         var self = this;
-        axios.get('api/getData').then(response => {
+        controller = new AbortController();
+        axios.get('api/getData', {signal: controller.signal}).then(response => {
             //console.log('------------------------------');
             //console.log(response);
             //response will be path coordinates of current logged in user
@@ -313,7 +315,8 @@ export default {
                                     interpolate: true,
                                     key: apiKey,
                                     path: values.slice(-100).join('|')
-                                    }
+                                    },
+                                    signal: controller.signal
                                 });
                                 if (response.status == 200) {
                                     //console.log('inside axios of device ' + key);
@@ -343,7 +346,7 @@ export default {
 
                     this.setMarkerRotations();
 
-                    if (self.$store.getters.isFiltered) {
+                    if (self.$store.getters.isFiltered && deviceFullDataMap.size > 0) {
                         controls.style.visibility = 'visible';
                         this.setSliderValues();
                     }
@@ -614,6 +617,7 @@ export default {
   watch: {
     '$store.state.filter': {deep: true,
         handler() {
+            controller.abort(); //cancel all axios requests
             controls.style.visibility = 'hidden';
             //console.log("filter changed");
             selectedMarker = null;

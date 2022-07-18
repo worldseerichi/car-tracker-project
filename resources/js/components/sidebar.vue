@@ -154,8 +154,9 @@ export default {
         },
         resetDateInputs(){
             var now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            this.filter.start_date = now.toISOString().slice(0, 16);
+            var yesterday = ( function(){this.setDate(this.getDate()-1); return this} ).call(new Date);
+            //now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            this.filter.start_date = yesterday.toISOString().slice(0, 16);
             this.filter.end_date = now.toISOString().slice(0, 16);
         },
         exportFilters(){

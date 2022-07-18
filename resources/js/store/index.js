@@ -31,6 +31,7 @@ export default createStore({
             range: 300,
             start_date: null,
             end_date: null,
+            randomFilterBoolean: false,
         }
     },
     mutations:{
@@ -77,6 +78,7 @@ export default createStore({
             state.filter.range = payload.range;
             state.filter.start_date = payload.start_date;
             state.filter.end_date = payload.end_date;
+            state.filter.randomFilterBoolean = !state.filter.randomFilterBoolean;
         },
         async resetFilter(state,payload){
             state.filtered = false;

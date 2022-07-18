@@ -192,4 +192,22 @@ class MapsController extends Controller
         'recorded_at'   => $data['recorded_at']
       ]);
     }
+
+    public function postDataTesting(Request $request){
+        $request->validate([
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'device_id' => 'required|numeric'
+        ]);
+        Device::where('id', $request->get('device_id'))->firstOr(function () {
+            return 'User deactivated or Device not found';
+        });
+        $data = $request->only('latitude', 'longitude','device_id');
+        TrackingData::create([
+            'latitude'      => $data['latitude'],
+            'longitude'     => $data['longitude'],
+            'device_id'     => $data['device_id']
+        ]);
+        return 'Data added';
+    }
 }

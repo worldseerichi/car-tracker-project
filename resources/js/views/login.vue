@@ -90,10 +90,10 @@ export default {
     ],
   },
   methods: {
-      login(){
-        this.$store.commit('storeLogin', {user: this.user, self: this});
-      },
-  }
+        login(){
+            this.$store.commit('storeLogin', {user: this.user, self: this});
+        }
+    }
 }
 </script>
 

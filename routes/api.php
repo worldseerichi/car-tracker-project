@@ -31,6 +31,7 @@ Route::get('/getDataCounted', [MapsController::class, 'getDataCounted'])->withTr
 //Post Tracking Data / Write Data
 Route::post('/postData', [MapsController::class, 'postData']);
 Route::post('/postDataBatch', [MapsController::class, 'postDataBatch']);
+Route::post('/postDataTesting', [MapsController::class, 'postDataTesting']); //for testing purposes
 
 //Csrf Token
 Route::get('/getToken', [MapsController::class, 'getToken']);
