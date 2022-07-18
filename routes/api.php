@@ -33,7 +33,7 @@ Route::post('/postData', [MapsController::class, 'postData']);
 Route::post('/postDataBatch', [MapsController::class, 'postDataBatch']);
 Route::post('/postDataTesting', [MapsController::class, 'postDataTesting']); //for testing purposes
 
-//Csrf Token
+//Csrf Token for Postman testing
 Route::get('/getToken', [MapsController::class, 'getToken']);
 
 //Auth

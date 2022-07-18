@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\Device;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -92,6 +93,9 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::check() || Auth::user()->is_admin == 0) {
+            return 'You are not allowed to delete accounts';
+        }
         $user = User::find($id);
         $devices = Device::where('user_id', $id)->get();
         $user->delete();
@@ -105,6 +109,9 @@ class UserController extends Controller
 
     public function restore($id)
     {
+        if (!Auth::check() || Auth::user()->is_admin == 0) {
+            return 'You are not allowed to restore accounts';
+        }
         User::withTrashed()->find($id)->restore();
         $devices = Device::withTrashed()->where('user_id', $id)->get();
         foreach ($devices as $device) {

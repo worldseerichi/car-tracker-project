@@ -26,7 +26,6 @@ class AuthController extends Controller
         $password = $request->input('password');
         //$credentials = $request->only('username', 'password');
         if (Auth::attempt(['username' => $username, 'password' => $password, 'is_admin' => 1, 'deleted_at' => null], true)) {
-            $request->session()->regenerate();
             $redir = '/';
         }
 
@@ -76,7 +75,7 @@ class AuthController extends Controller
             Auth::loginUsingId($device['user_id']);
             return 'Login success';
         }
-        return 'Login failed';
+        return $device;
     }
 
     public function registrationRequest(Request $request)
@@ -117,6 +116,6 @@ class AuthController extends Controller
         Session::flush();
         Auth::logout();
 
-        //return Redirect('dashboard');
+        return 'Logged out';
     }
 }
