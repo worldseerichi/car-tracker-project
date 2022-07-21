@@ -25,7 +25,6 @@ export default createStore({
         randomBoolean: false,
         adminLogged: false,
         sidebarShown: false,
-        filtered: false,
         filter: {
             location: '39.7390615,-8.8170667',
             range: 500,
@@ -73,7 +72,6 @@ export default createStore({
             state.randomBoolean = !state.randomBoolean;
         },
         async filterData(state,payload){
-            state.filtered = true;
             state.filter.location = payload.location;
             state.filter.range = payload.range;
             state.filter.start_date = payload.start_date;
@@ -81,7 +79,6 @@ export default createStore({
             state.filter.randomFilterBoolean = !state.filter.randomFilterBoolean;
         },
         async resetFilter(state,payload){
-            state.filtered = false;
             state.filter.location = '39.7390615,-8.8170667';
             state.filter.range = 500;
             var now = new Date();
@@ -113,9 +110,6 @@ export default createStore({
         },
         getLocation(state){
             return state.filter.location
-        },
-        isFiltered(state){
-            return state.filtered
         },
         getRange(state){
             return state.filter.range

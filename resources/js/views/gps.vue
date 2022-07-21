@@ -299,10 +299,9 @@ export default {
                     //runs after all axios requests are completed
                     this.setMarkerRotations();
 
-                    if (self.$store.getters.isFiltered && deviceFullDataMap.size > 0) {
-                        controls.style.visibility = 'visible';
-                        this.setSliderValues();
-                    }
+                    controls.style.visibility = 'visible';
+                    this.setSliderValues();
+
                 }).catch(error => {
                     console.log('Error in async anonymous function: ' + error);
                 });
@@ -375,23 +374,10 @@ export default {
     },
 
     centerMap() {
-        if (this.$store.getters.getLocation == '') {
-            filteredCenter = markers.get([...uniqueDeviceIdArray].pop()).getPosition();
-            map.setCenter(filteredCenter);
-            map.setZoom(14);
-        }else{
-            if (regexExp.test(this.$store.getters.getLocation)) {
-                coords = this.$store.getters.getLocation.split(",");
-                filteredCenter = new google.maps.LatLng(parseFloat(coords[0]), parseFloat(coords[1]));
-                map.setCenter(filteredCenter);
-                map.setZoom(14);
-                console.log("valid location");
-                return true;
-            }else{
-                console.log("invalid location");
-                return false;
-            }
-        }
+        coords = this.$store.getters.getLocation.split(",");
+        filteredCenter = new google.maps.LatLng(parseFloat(coords[0]), parseFloat(coords[1]));
+        map.setCenter(filteredCenter);
+        map.setZoom(14);
     },
 
     getDataClosestToSliderPosition(data, target){
@@ -489,9 +475,7 @@ export default {
             infowindow.open(map, selectedMarker);
         };
         this.setMarkerRotations();
-        if (this.$store.getters.isFiltered) {
-            this.sliderChangeHandler(this.slider.value);
-        }
+        this.sliderChangeHandler(this.slider.value);
     },
 
     updateInfoWindowValues(device_id){
@@ -530,8 +514,8 @@ export default {
         }
     },
 
-    exportData(){
-        if (this.$store.getters.isFiltered) {
+    exportData(){ //TODO: change function to new logic with the new slider values
+        if (false) {
             deviceExportData = new Map();
             deviceFullDataMap.forEach((values,keys)=>{
                 deviceExportData.set(
