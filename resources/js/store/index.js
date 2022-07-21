@@ -27,8 +27,8 @@ export default createStore({
         sidebarShown: false,
         filtered: false,
         filter: {
-            location: '',
-            range: 300,
+            location: '39.7390615,-8.8170667',
+            range: 500,
             start_date: null,
             end_date: null,
             randomFilterBoolean: false,
@@ -82,10 +82,12 @@ export default createStore({
         },
         async resetFilter(state,payload){
             state.filtered = false;
-            state.filter.location = '';
-            state.filter.range = 300;
-            state.filter.start_date = null;
-            state.filter.end_date = null;
+            state.filter.location = '39.7390615,-8.8170667';
+            state.filter.range = 500;
+            var now = new Date();
+            var yesterday = ( function(){this.setDate(this.getDate()-1); return this} ).call(new Date);
+            state.filter.start_date = yesterday.toISOString().slice(0, 16);;
+            state.filter.end_date = now.toISOString().slice(0, 16);;
         }
 
     },

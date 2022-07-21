@@ -58,7 +58,7 @@ class MapsController extends Controller
 
         $data = TrackingData::whereIn('device_id', $validDevices)->whereBetween('recorded_at', [$start, $end])->get();
         if(count($data) == 0){
-            return 'No data found';
+            return 'No data found between given dates.';
         };
         $devices = TrackingData::whereIn('device_id', $validDevices)->select('device_id')->distinct()->get();
         $deviceData = [];
@@ -93,7 +93,9 @@ class MapsController extends Controller
                 unset($deviceData[$key]);
             }
         }
-
+        if(empty($deviceData)){
+            return 'No data found within given range.';
+        }
         return $deviceData;
     }
 

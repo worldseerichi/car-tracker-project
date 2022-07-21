@@ -44,7 +44,7 @@ var lastPositionMap = new Map();
 var deviceFullDataMap = new Map();
 var geocoder;
 var apiKey = process.env.MIX_API_KEY;
-var uniqueDeviceIdArray = new Set();
+var uniqueDeviceIdArray = [];
 const regexExp = /^((\-?|\+?)?\d+(\.\d+)?),\s*((\-?|\+?)?\d+(\.\d+)?)$/i; // regex expression for checking valid latlng
 var coords;
 var R = 6371.0710; //radius of the earth in kilometers
@@ -200,14 +200,22 @@ export default {
     getRouteData() {
         var self = this;
         controller = new AbortController();
-        axios.get('api/getData', {signal: controller.signal}).then(response => {
+        console.log(this.$store.getters.getLocation);
+        console.log(this.$store.getters.getRange);
+        console.log(this.$store.getters.getStartDate);
+        console.log(this.$store.getters.getEndDate);
+        axios.get('api/getDataFiltered', {signal: controller.signal,
+                                            params: {location: this.$store.getters.getLocation,
+                                                    range: this.$store.getters.getRange,
+                                                    start_date: this.$store.getters.getStartDate,
+                                                    end_date: this.$store.getters.getEndDate}}).then(response => {
             //console.log('------------------------------');
             //console.log(response);
             //response will be path coordinates of current logged in user
-            if(response.data == 'No data found'){
-                console.log(response.data);
+            if(typeof response.data === 'string'){
+                console.log(response.data); //show toast here
             }else{
-                uniqueDeviceIdArray = new Set();
+                uniqueDeviceIdArray = [];
                 deviceDataMap = new Map();
                 startPosMarkers = new Map();
                 markers = new Map();
@@ -220,84 +228,33 @@ export default {
                 firstPositionMap = new Map();
                 var validLocationCheck = true;
                 this.slider.disabled = true;
-                //console.log(response);
+                console.log(response.data);
+                //console.log(Object.values(response.data));
 
-                uniqueDeviceIdArray = [...new Set(response.data.map(item => item.device_id))];
-                if (self.$store.getters.isFiltered) {
-                    //console.log('filtered');
-                    locationRange = self.$store.getters.getLocation;
-                    if (locationRange != '') {
-                        validLocationCheck = this.centerMap();
-                    }
-                    if (validLocationCheck && self.$store.getters.getRange > 0) {
-                        //console.log('valid location');
-                        uniqueDeviceIdArray.forEach(function(deviceId) {
-                            if (response.data.filter(data => data.device_id == deviceId && new Date(data.recorded_at) >= new Date(self.$store.getters.getStartDate) && new Date(data.recorded_at) <= new Date(self.$store.getters.getEndDate)).length > 0) {
-                                deviceDataMap.set(
-                                    deviceId,
-                                    response.data.filter(data => data.device_id == deviceId && new Date(data.recorded_at) >= new Date(self.$store.getters.getStartDate) && new Date(data.recorded_at) <= new Date(self.$store.getters.getEndDate))
-                                    .map(function (data) { return [data.latitude, data.longitude]; })
-                                )
-                                deviceFullDataMap.set(
-                                    deviceId,
-                                    response.data.filter(data => data.device_id == deviceId && new Date(data.recorded_at) >= new Date(self.$store.getters.getStartDate) && new Date(data.recorded_at) <= new Date(self.$store.getters.getEndDate))
-                                    .map(function (data) { return data; })
-                                )
-                            }
-                            //console.log('filtering');
-                        });
-                        if (locationRange != '') {
-                            const rangeCircle = new google.maps.Circle({
-                                strokeColor: "#0096FF",
-                                strokeOpacity: 0.4,
-                                strokeWeight: 2,
-                                fillOpacity: 0,
-                                map,
-                                center: filteredCenter,
-                                radius: self.$store.getters.getRange,
-                            });
-                            circles.push(rangeCircle);
-                            deviceDataMap.forEach((values,keys)=>{
-                                var shortestDistance = Number.MAX_VALUE;
-                                //check for data out of range and remove it from map
-                                values.forEach((value, index)=>{
-                                    var rlat1 = value[0] * (Math.PI/180); // Convert degrees to radians
-                                    var rlat2 = parseFloat(coords[0]) * (Math.PI/180); // coords -> location filter values
-                                    var difflat = rlat2-rlat1; // Radian difference (latitudes)
-                                    var difflon = (parseFloat(coords[1])-value[1]) * (Math.PI/180); // Radian difference (longitudes)
+                uniqueDeviceIdArray = Object.keys(response.data);
+                uniqueDeviceIdArray.forEach(function(deviceId) {
+                    deviceDataMap.set(
+                        deviceId,
+                        Object.values(response.data[deviceId]).map(function (data) { return [data.latitude, data.longitude]; })
+                    )
+                    deviceFullDataMap.set(
+                        deviceId,
+                        Object.values(response.data[deviceId]).map(function (data) { return data; })
+                    )
+                });
 
-                                    var distance = 2 * R * Math.asin(Math.sqrt(Math.sin(difflat/2)*Math.sin(difflat/2)+Math.cos(rlat1)*Math.cos(rlat2)*Math.sin(difflon/2)*Math.sin(difflon/2))) * 1000; // Haversine formula
-                                    if (distance < shortestDistance) {
-                                        shortestDistance = distance;
-                                    };
-                                })
-                                //console.log('key: ' + keys + ' shortestDistance: ' + shortestDistance);
-                                if (shortestDistance > self.$store.getters.getRange) {
-                                    deviceDataMap.delete(keys);
-                                    deviceFullDataMap.delete(keys);
-                                }
-                            });
-                        }
+                this.centerMap();
 
-                    }else{
-                        console.log('No data found through current filters');
-                    }
-                }else{ //no filter applied
-                    uniqueDeviceIdArray.forEach(function(deviceId) {
-                        deviceDataMap.set(
-                            deviceId,
-                            response.data.filter(data => data.device_id == deviceId)
-                            .map(function (data) { return [data.latitude, data.longitude]; })
-                        )
-                        deviceFullDataMap.set(
-                            deviceId,
-                            response.data.filter(data => data.device_id == deviceId)
-                            .map(function (data) { return data; })
-                        )
-                    });
-                }
-
-                //if deviceDataMap.size is 0, show toast message about no data found
+                const rangeCircle = new google.maps.Circle({
+                    strokeColor: "#0096FF",
+                    strokeOpacity: 0.4,
+                    strokeWeight: 2,
+                    fillOpacity: 0,
+                    map,
+                    center: filteredCenter,
+                    radius: self.$store.getters.getRange,
+                });
+                circles.push(rangeCircle);
 
                 deviceDataMap.forEach((values,keys)=>{
                     deviceRequestsRequiredMap.set(keys,Math.ceil(values.length/100));
@@ -340,10 +297,6 @@ export default {
                     }
                 })().then(() => {
                     //runs after all axios requests are completed
-                    if (self.$store.getters.getLocation == '') {
-                        this.centerMap();
-                    };
-
                     this.setMarkerRotations();
 
                     if (self.$store.getters.isFiltered && deviceFullDataMap.size > 0) {

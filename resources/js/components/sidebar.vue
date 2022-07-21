@@ -128,8 +128,8 @@ export default {
   data() {
     return {
       filter:{
-        location: '',
-        range: 300,
+        location: '39.7390615,-8.8170667',
+        range: 500,
         start_date: null,
         end_date: null,
       },
@@ -148,8 +148,8 @@ export default {
         },
         resetFilter() {
             this.$store.commit('resetFilter');
-            this.filter.location = '';
-            this.filter.range = 300;
+            this.filter.location = '39.7390615,-8.8170667';
+            this.filter.range = 500;
             this.resetDateInputs();
         },
         resetDateInputs(){
@@ -174,6 +174,7 @@ export default {
   },
   mounted() {
     this.resetDateInputs();
+    this.$store.commit('filterData', this.filter);
   }
 }
 </script>
