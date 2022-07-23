@@ -156,6 +156,7 @@ export default {
             var now = new Date();
             var yesterday = ( function(){this.setDate(this.getDate()-1); return this} ).call(new Date);
             //now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            //yesterday.setMinutes(yesterday.getMinutes() - yesterday.getTimezoneOffset());
             this.filter.start_date = yesterday.toISOString().slice(0, 16);
             this.filter.end_date = now.toISOString().slice(0, 16);
         },

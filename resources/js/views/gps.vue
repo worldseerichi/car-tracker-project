@@ -5,27 +5,16 @@
       <div class="g-p-s-bg"></div>
     </div>
     <div class="g-p-s-container1" id="map"></div>
-    <div id="controlsDiv" style="display: flex; justify-content: space-around; width: 100%; visibility: hidden;">
-        <button id="controls" @click="setExportStart()">Set Slider Start</button>
-        <vue-slider style="width: 60%; padding: 31px 0px;"
-            v-model="slider.value"
-            :min="slider.min"
-            :max="slider.max"
-            :drag-on-click="true"
-            :disabled="slider.disabled"
-            :tooltip="'none'"
-            @change="val => this.sliderChangeHandler(val)"
-        ></vue-slider> <!-- 18px de padding preferivel -->
-        <button id="controls" @click="setExportEnd()">Set Slider End</button>
+    <div id="controlsDiv" style="width: 68%; visibility: hidden;">
+        <input type="text" id="rangeSlider_id" name="rangeSlider" value="" />
     </div>
   </div>
 </template>
 
 <script>
 import AppHeader from '../components/header'
-import VueSlider from 'vue-slider-component'
-import 'vue-slider-component/theme/default.css'
 import axios from 'axios';
+import * as slider from '../plugins/rangeslider.js';
 
 var map;
 var controller;
@@ -68,6 +57,7 @@ var exportTimestampStart = 0;
 var exportTimestampEnd = 0;
 var deviceExportData = new Map();
 var infowindow;
+var rangeSlider = null;
 
 
 var otherUsersIcon = {
@@ -119,8 +109,7 @@ var startPosIcon = {
 export default {
   name: 'GPS',
   components: {
-    AppHeader,
-    VueSlider
+    AppHeader
   },
   metaInfo: {
     title: 'GPS - Vehicle Tracker',
@@ -135,9 +124,7 @@ export default {
     return {
       slider:{
         min: 0,
-        max: 0,
-        value: 0,
-        disabled: true
+        max: 0
       },
     }
   },
@@ -226,8 +213,6 @@ export default {
                 snappedCoordinatesArrayMap = new Map();
                 lastPositionMap = new Map();
                 firstPositionMap = new Map();
-                var validLocationCheck = true;
-                this.slider.disabled = true;
                 console.log(response.data);
                 //console.log(Object.values(response.data));
 
@@ -387,21 +372,64 @@ export default {
     },
 
     setSliderValues() {
-        var startDate = new Date(this.$store.getters.getStartDate);
-        var endDate = new Date(this.$store.getters.getEndDate);
-
-        this.slider.max = endDate.getTime()/1000.0; //epoch time in seconds
-        this.slider.value = endDate.getTime()/1000.0;
-        this.slider.min = startDate.getTime()/1000.0;
-
-        exportTimestampStart = this.$store.getters.getStartDate;
-        exportTimestampEnd = this.$store.getters.getEndDate;
-
-        this.slider.disabled = false;
+        this.slider.min = new Date(this.$store.getters.getStartDate).getTime()/1000.0; //epoch time in seconds
+        this.slider.max = new Date(this.$store.getters.getEndDate).getTime()/1000.0;
+        //for date debugging
+        /*console.log('store startdate: ' + this.$store.getters.getStartDate);
+        console.log('store enddate: ' + this.$store.getters.getEndDate);
+        console.log('slider min: ' + this.slider.min);
+        console.log('slider max: ' + this.slider.max);
+        console.log('slider min date: ' + new Date(this.slider.min*1000));
+        console.log('slider max date: ' + new Date(this.slider.max*1000));
+        console.log('slider iso min: ' + new Date(this.slider.min*1000).toISOString().slice(0, 16));
+        console.log('slider iso max: ' + new Date(this.slider.max*1000).toISOString().slice(0, 16));*/
+        rangeSlider = slider.ionRangeSlider('#rangeSlider_id', {
+            skin: "round",
+            type: "double",
+            min: this.slider.min,
+            max: this.slider.max,
+            from: this.slider.min,
+            to: this.slider.max,
+            prettify_enabled: true,
+            prettify: function prettify(num) {
+                return new Date(num*1000).toLocaleString('pt-PT'); //show data in datetime format
+            },
+            onChange: pos => this.sliderChangeHandler(pos)
+        });
+        rangeSlider.update({
+            from: this.slider.min,
+            to: this.slider.max
+        })
+        exportTimestampStart = this.slider.min;
+        exportTimestampEnd = this.slider.max;
     },
 
-    sliderChangeHandler(val){
-        //console.log(val);
+    sliderChangeHandler(pos){
+        exportTimestampStart = pos.from;
+        exportTimestampEnd = pos.to;
+        deviceFullDataMap.forEach((values,keys)=>{
+            var sliderPositionTo = this.getDataClosestToSliderPosition(values, pos.to);
+            var sliderPositionToIndex = values.indexOf(sliderPositionTo);
+            var sliderPositionToLatLng = new google.maps.LatLng(sliderPositionTo.latitude, sliderPositionTo.longitude);
+
+            var sliderPositionFrom = this.getDataClosestToSliderPosition(values, pos.from);
+            var sliderPositionFromLatLng = new google.maps.LatLng(sliderPositionFrom.latitude, sliderPositionFrom.longitude);
+            this.moveMarker(startPosMarkers.get(keys), sliderPositionFromLatLng, 180);
+
+            if (sliderPositionToIndex == values.length-1) {
+                var previousPosition = values[sliderPositionToIndex-1];
+                var previousPositionLatLng = new google.maps.LatLng(previousPosition.latitude, previousPosition.longitude);
+                var heading = google.maps.geometry.spherical.computeHeading(previousPositionLatLng, sliderPositionToLatLng);
+
+                this.moveMarker(markers.get(keys), sliderPositionToLatLng, heading);
+            }else{
+                var nextPosition = values[sliderPositionToIndex+1];
+                var nextPositionLatLng = new google.maps.LatLng(nextPosition.latitude, nextPosition.longitude);
+                var heading = google.maps.geometry.spherical.computeHeading(sliderPositionToLatLng, nextPositionLatLng);
+
+                this.moveMarker(markers.get(keys), sliderPositionToLatLng, heading);
+            }
+        });
         if (selectedMarker != null) {
             markers.forEach((value, key) => {
                 if (value == selectedMarker) {
@@ -409,25 +437,6 @@ export default {
                 }
             });
         }
-        deviceFullDataMap.forEach((values,keys)=>{
-            var sliderPosition = this.getDataClosestToSliderPosition(values, val);
-            var sliderPositionIndex = values.indexOf(sliderPosition);
-            var sliderPositionLatLng = new google.maps.LatLng(sliderPosition.latitude, sliderPosition.longitude);
-
-            if (sliderPositionIndex == values.length-1) {
-                var previousPosition = values[sliderPositionIndex-1];
-                var previousPositionLatLng = new google.maps.LatLng(previousPosition.latitude, previousPosition.longitude);
-                var heading = google.maps.geometry.spherical.computeHeading(previousPositionLatLng, sliderPositionLatLng);
-
-                this.moveMarker(markers.get(keys), sliderPositionLatLng, heading);
-            }else{
-                var nextPosition = values[sliderPositionIndex+1];
-                var nextPositionLatLng = new google.maps.LatLng(nextPosition.latitude, nextPosition.longitude);
-                var heading = google.maps.geometry.spherical.computeHeading(sliderPositionLatLng, nextPositionLatLng);
-
-                this.moveMarker(markers.get(keys), sliderPositionLatLng, heading);
-            }
-        });
     },
 
     moveMarker(marker, position, heading) {
@@ -475,7 +484,7 @@ export default {
             infowindow.open(map, selectedMarker);
         };
         this.setMarkerRotations();
-        this.sliderChangeHandler(this.slider.value);
+        this.sliderChangeHandler({from: exportTimestampStart, to: exportTimestampEnd});
     },
 
     updateInfoWindowValues(device_id){
@@ -490,11 +499,11 @@ export default {
             '<br/>Longitude: ' + currentInfo.longitude +
             '<br/>Velocity: ' + currentInfo.velocity + ' km/h' +
             '<br/>Bearing: ' + currentInfo.bearing + '&#176;' +
-            '<br/>Recorded at: ' + currentInfo.recorded_at
+            '<br/>Recorded at: ' + new Date(currentInfo.recorded_at).toLocaleString('pt-PT')
         );
     },
 
-    setExportStart(){
+    setExportStart(){ //delete these setExport functions later
         //console.log("setExportStart");
         if (new Date(exportTimestampEnd).getTime()/1000 < this.slider.value) {
             console.log('Export Date Start must be lower than the Export Date End');
@@ -573,6 +582,9 @@ export default {
                 circle.setMap(null);
             });
             circles = [];
+            if (rangeSlider != null) {
+                rangeSlider.destroy();
+            }
             this.getRouteData();
         }
     },
@@ -588,6 +600,7 @@ export default {
 </script>
 
 <style scoped>
+@import '../plugins/rangeslider.css';
 .g-p-s-container {
   width: 100%;
   height: auto;

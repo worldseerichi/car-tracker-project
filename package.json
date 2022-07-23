@@ -26,9 +26,9 @@
     "dependencies": {
         "bootstrap-vue": "^2.21.2",
         "google-maps": "^4.3.3",
+        "vanilla-rangeslider": "^1.0.0",
         "vue-meta": "^2.4.0",
         "vue-router": "^4.0.13",
-        "vue-slider-component": "^4.1.0-beta.1",
         "vuex": "^4.0.2",
         "vuex-persistedstate": "^4.1.0"
     }
