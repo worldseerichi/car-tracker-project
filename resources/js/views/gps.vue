@@ -533,24 +533,20 @@ export default {
 
     exportData(){ //TODO: change function to new logic with the new slider values
         //use exportTimestampStart*1000 and exportTimestampEnd*1000 to get the data from the selected time range
-        if (false) {
-            deviceExportData = new Map();
-            deviceFullDataMap.forEach((values,keys)=>{
-                deviceExportData.set(
-                    keys,
-                    values.filter(data => new Date(data.recorded_at) >= new Date(exportTimestampStart) && new Date(data.recorded_at) <= new Date(exportTimestampEnd))
-                    .map(function (data) { return data; })
-                    );
-            });
-            deviceExportData.forEach((values,keys)=>{
-                if (values.length == 0) {
-                    deviceExportData.delete(keys);
-                }
-            });
-            this.downloadObjectAsJson({ Data: Array.from(deviceExportData)} ,"TrackingData");
-        }else{
-            this.downloadObjectAsJson({ Data: Array.from(deviceFullDataMap)} ,"TrackingData");
-        }
+        deviceExportData = new Map();
+        deviceFullDataMap.forEach((values,keys)=>{
+            deviceExportData.set(
+                keys,
+                values.filter(data => new Date(data.recorded_at) >= new Date(exportTimestampStart*1000) && new Date(data.recorded_at) <= new Date(exportTimestampEnd*1000))
+                .map(function (data) { return data; })
+                );
+        });
+        deviceExportData.forEach((values,keys)=>{
+            if (values.length == 0) {
+                deviceExportData.delete(keys);
+            }
+        });
+        this.downloadObjectAsJson({ Data: Array.from(deviceExportData)} ,"TrackingData");
         this.toast.success('Data exported successfully.', { timeout: 5000 });
     },
 
