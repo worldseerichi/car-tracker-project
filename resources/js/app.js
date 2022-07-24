@@ -7,6 +7,8 @@ import { createApp } from 'vue'
 import { createStore } from 'vuex'
 //Vue.use(VueRouter)
 
+import Toast, { POSITION } from "vue-toastification";
+import "vue-toastification/dist/index.css";
 
 import GPS from './views/gps'
 import Home from './views/home'
@@ -92,4 +94,7 @@ app.use(router)
 app.use(Meta)
 app.use(Vuex)
 app.use(store)
+app.use(Toast, {
+    position: POSITION.TOP_RIGHT,
+})
 app.mount('#app');

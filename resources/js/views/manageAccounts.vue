@@ -102,6 +102,10 @@ import AppHeader from '../components/header'
 import "bootstrap/dist/js/bootstrap.js";
 import "bootstrap/dist/css/bootstrap.min.css";
 import axios from 'axios';
+import { useToast } from 'vue-toastification';
+
+var toastId = null;
+
 export default {
   name: 'GPS1',
   components: {
@@ -132,12 +136,13 @@ export default {
   },
   methods:{
      getTableData: function(){
+        toastId = this.toast.info("Loading data...", { timeout: false });
         axios.get('api/getDataCounted').then(response => {
             //console.log(response);
             //response will be path coordinates of current logged in user
             if(response.data == 'No data found'){
-                console.log(response.data);
-
+                //console.log(response.data);
+                this.toast.update(toastId, { content: response.data, options: { timeout: 5000, type: "error" } });
             }else{
                   var uniqueUserIdArray;
                   var userDataMap = new Map();
@@ -182,66 +187,72 @@ export default {
                 //console.log(userDataMap);
                 //console.log(Array.from(userDataMap))
                 this.s = Array.from(userDataMap)
+                this.toast.update(toastId, { content: "Data loaded.", options: { timeout: 5000, type: "success" } });
                 }
       })
         .catch(e => {
-            console.log("getData failed due to: " + e);
+            this.toast.update(toastId, { content: "Something went wrong...", options: { timeout: 3000, type: "error" } });
+            console.log("getTableData failed due to: " + e);
         });
 
     },
     register: function () {
             var self = this;
+            this.toast.info("Registering account...", { id:"register", timeout: false });
             axios.post('api/registration-request', { username: this.username, password: this.password })
                 .then(function (response) {
-                    console.log(response);
-                    //implement something to tell the user an account was created~
+                    //console.log(response);
+                    self.toast.update("register", { content: "Account registered.", options: { timeout: 5000, type: "success" } });
                     self.getTableData();
                 })
                 .catch(function (error) {
                     console.log(error);
-                    console.log('erro no registo');
+                    self.toast.update("register", { content: "Something went wrong...", options: { timeout: 3000, type: "error" } });
                 });
 
         },
     softDelete(userId){
       var self = this;
-      console.log(userId);
+      //console.log(userId);
+      this.toast.info("Deleting account...", { id:"delete", timeout: false });
       axios.delete('api/users/'+userId)
                 .then(function (response) {
-                    console.log(response);
+                    //console.log(response);
+                    self.toast.update("delete", { content: "Account deleted.", options: { timeout: 5000, type: "success" } });
                     self.getTableData();
-                    //implement something to tell the user an account was created
                 })
                 .catch(function (error) {
                     console.log(error);
-                    console.log('erro no soft delete');
+                    self.toast.update("delete", { content: "Something went wrong...", options: { timeout: 3000, type: "error" } });
                 });
 
     },
     restore(userId){
       var self = this;
       //console.log(userId);
+      this.toast.info("Restoring account...", { id:"restore", timeout: false });
       axios.get('api/users/restore/'+userId)
                 .then(function (response) {
-                    console.log(response);
+                    //console.log(response);
+                    self.toast.update("restore", { content: "Account restored.", options: { timeout: 5000, type: "success" } });
                     self.getTableData();
-                    //implement something to tell the user an account was created
                 })
                 .catch(function (error) {
                     console.log(error);
-                    console.log('erro no soft delete');
+                    self.toast.update("restore", { content: "Something went wrong...", options: { timeout: 3000, type: "error" } });
                 });
 
 
     }
   },
-  mounted(){
-    this.getTableData();
-  },
-  created() {
+    mounted(){
+        this.getTableData();
+    },
+    setup(){
+        const toast = useToast();
 
-
-  }
+        return { toast };
+    },
 }
 </script>
 <style scoped>

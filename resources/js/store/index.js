@@ -13,6 +13,9 @@ export default new Vuex.Store({
 import {createStore } from 'vuex'
 import axios from 'axios'
 import createPersistedState from 'vuex-persistedstate'
+import { useToast } from 'vue-toastification'
+
+const toast = useToast()
 
 export default createStore({
     plugins: [createPersistedState({
@@ -36,33 +39,40 @@ export default createStore({
     mutations:{
        async storeLogin(state,payload){
             //console.log("storeLogin");
+            toast.info("Logging in...", { id: "login", timeout: false });
             axios.get('/sanctum/csrf-cookie').then(response => {
                 //console.log(response);
                 axios.post('api/login-request',payload.user).then(response => {
                     if (response.data=='/'){
                         //console.log(response)
-                        console.log("login success");
+                        //console.log("login success");
+                        toast.update("login", { content: "Login successful.", options: { timeout: 3000, type: "success" } });
                         //state.key = response.data.access_token
                         state.adminLogged = true;
 
                         payload.self.$router.push('/')
                     }else{
                         // self.$router.push('login')
-                        console.log("login failed");
+                        //console.log("login failed");
+                        toast.update("login", { content: "Login failed.", options: { timeout: 3000, type: "error" } });
                     }
                 })
                 .catch(function (error) {
-                          console.log(error);
-                      });
+                    toast.update("login", { content: "Something went wrong...", options: { timeout: 3000, type: "error" } });
+                    console.log(error);
+                });
 
             })
         },
         async storeLogout(state,payload){
+            toast.info("Signing out...", { id: "signout", timeout: false });
             axios.post('api/signout').then(response => {
                 state.adminLogged = false;
-                console.log("signed out");
+                //console.log("signed out");
+                toast.update("signout", { content: "Signout successful.", options: { timeout: 3000, type: "success" } });
             }).catch(function (error) {
-                          console.log(error);
+                toast.update("signout", { content: "Something went wrong...", options: { timeout: 3000, type: "error" } });
+                console.log(error);
             });
         },
         async toggleSidebar(state,payload){

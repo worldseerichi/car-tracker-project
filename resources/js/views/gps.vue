@@ -15,6 +15,7 @@
 import AppHeader from '../components/header'
 import axios from 'axios';
 import * as slider from '../plugins/rangeslider.js';
+import { useToast } from "vue-toastification";
 
 var map;
 var controller;
@@ -58,6 +59,7 @@ var exportTimestampEnd = 0;
 var deviceExportData = new Map();
 var infowindow;
 var rangeSlider = null;
+var toastId = null;
 
 
 var otherUsersIcon = {
@@ -185,6 +187,7 @@ export default {
     },
 
     getRouteData() {
+        toastId = this.toast.info("Loading data...", { timeout: false });
         var self = this;
         controller = new AbortController();
         console.log(this.$store.getters.getLocation);
@@ -200,7 +203,8 @@ export default {
             //console.log(response);
             //response will be path coordinates of current logged in user
             if(typeof response.data === 'string'){
-                console.log(response.data); //show toast here
+                //console.log(response.data); //show toast here
+                this.toast.update(toastId, { content: response.data, options: { timeout: 5000, type: "error" } });
             }else{
                 uniqueDeviceIdArray = [];
                 deviceDataMap = new Map();
@@ -269,6 +273,7 @@ export default {
                                     console.log('Some error occurred in snapToRoads: ' + response);
                                 }
                             } catch (error) {
+                                this.toast.update(toastId, { content: "Something went wrong...", options: { timeout: 3000, type: "error" } });
                                 console.log("snapToRoads failed due to: " + error);
                             };
                             //console.log('after awaited axios of device '+ key);
@@ -287,12 +292,15 @@ export default {
                     controls.style.visibility = 'visible';
                     this.setSliderValues();
 
+                    this.toast.update(toastId, { content: "Data loaded.", options: { timeout: 5000, type: "success" } });
                 }).catch(error => {
+                    this.toast.update(toastId, { content: "Something went wrong...", options: { timeout: 3000, type: "error" } });
                     console.log('Error in async anonymous function: ' + error);
                 });
             };
         })
         .catch(e => {
+            this.toast.update(toastId, { content: "Something went wrong...", options: { timeout: 3000, type: "error" } });
             console.log("getData failed due to: " + e);
         });
     },
@@ -524,6 +532,7 @@ export default {
     },
 
     exportData(){ //TODO: change function to new logic with the new slider values
+        //use exportTimestampStart*1000 and exportTimestampEnd*1000 to get the data from the selected time range
         if (false) {
             deviceExportData = new Map();
             deviceFullDataMap.forEach((values,keys)=>{
@@ -542,6 +551,7 @@ export default {
         }else{
             this.downloadObjectAsJson({ Data: Array.from(deviceFullDataMap)} ,"TrackingData");
         }
+        this.toast.success('Data exported successfully.', { timeout: 5000 });
     },
 
     downloadObjectAsJson(exportObj, exportName){
@@ -555,47 +565,53 @@ export default {
     },
   },
 
-  mounted() {
-    this.initMap();
-    controls = document.getElementById('controlsDiv');
-  },
+    mounted() {
+        this.initMap();
+        controls = document.getElementById('controlsDiv');
+    },
 
-  watch: {
-    '$store.state.filter': {deep: true,
-        handler() {
-            controller.abort(); //cancel all axios requests
-            controls.style.visibility = 'hidden';
-            //console.log("filter changed");
-            selectedMarker = null;
-            startPosMarkers.forEach((values,keys)=>{
+    setup(){
+        const toast = useToast();
+
+        return { toast };
+    },
+
+    watch: {
+        '$store.state.filter': {deep: true,
+            handler() {
+                controller.abort(); //cancel all axios requests
+                controls.style.visibility = 'hidden';
+                //console.log("filter changed");
+                selectedMarker = null;
+                startPosMarkers.forEach((values,keys)=>{
+                    values.setMap(null);
+                });
+                markers.forEach((values,keys)=>{
                 values.setMap(null);
-            });
-            markers.forEach((values,keys)=>{
-              values.setMap(null);
-            });
-            markers = new Map();
-            polylines.forEach((values,keys)=>{
-              values.setMap(null);
-            });
-            polylines = new Map();
-            circles.forEach((circle) => {
-                circle.setMap(null);
-            });
-            circles = [];
-            if (rangeSlider != null) {
-                rangeSlider.destroy();
+                });
+                markers = new Map();
+                polylines.forEach((values,keys)=>{
+                values.setMap(null);
+                });
+                polylines = new Map();
+                circles.forEach((circle) => {
+                    circle.setMap(null);
+                });
+                circles = [];
+                if (rangeSlider != null) {
+                    rangeSlider.destroy();
+                }
+                this.getRouteData();
             }
-            this.getRouteData();
-        }
-    },
-    '$store.state.adminLogged': {
-        handler() {
-            if (this.$store.getters.getAdminLogged == false) {
-                this.$router.push('/login');
-            };
-        }
-    },
-  }
+        },
+        '$store.state.adminLogged': {
+            handler() {
+                if (this.$store.getters.getAdminLogged == false) {
+                    this.$router.push('/login');
+                };
+            }
+        },
+    }
 }
 </script>
 
