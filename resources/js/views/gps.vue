@@ -19,9 +19,6 @@ import { useToast } from "vue-toastification";
 
 var map;
 var controller;
-/*var controlDiv;
-var controlUI;
-var controlText;*/
 // Button For Inside Of Map
 var controlUI;
 var controlDiv;
@@ -32,26 +29,18 @@ var snappedCoordinatesArrayMap = new Map();
 var firstPositionMap = new Map();
 var lastPositionMap = new Map();
 var deviceFullDataMap = new Map();
-var geocoder;
 var apiKey = process.env.MIX_API_KEY;
 var uniqueDeviceIdArray = [];
 const regexExp = /^((\-?|\+?)?\d+(\.\d+)?),\s*((\-?|\+?)?\d+(\.\d+)?)$/i; // regex expression for checking valid latlng
 var coords;
-var R = 6371.0710; //radius of the earth in kilometers
-var locationRange;
 var filteredCenter;
 var circles = [];
 var selectedMarker;
-var selectedPolyline;
 var startPosMarkers = new Map();
 var markers = new Map();
 var polylines = new Map();
 var deviceDataMap = new Map();
-var deviceDataMapCopy = new Map();
 var snappedCoordinatesMap = new Map();
-var snappedCoordinates = [];
-var counter = 0;
-var axiosRequestsRequired = 0;
 var deviceRequestsRequiredMap = new Map();
 var deviceRequestCounterMap = new Map();
 var exportTimestampStart = 0;
@@ -143,7 +132,6 @@ export default {
         map = new google.maps.Map(document.getElementById("map"), mapOptions); //creates and initializes the map
         const centerFilterControl = this.giveButton();
         map.controls[google.maps.ControlPosition.TOP_CENTER].push(centerFilterControl);
-        geocoder = new google.maps.Geocoder();
         infowindow = new google.maps.InfoWindow({
             content: '<strong>Selected Vehicle Data: </strong>' +
                     '<br/>Latitude: ' +
@@ -199,11 +187,7 @@ export default {
                                                     range: this.$store.getters.getRange,
                                                     start_date: this.$store.getters.getStartDate,
                                                     end_date: this.$store.getters.getEndDate}}).then(response => {
-            //console.log('------------------------------');
-            //console.log(response);
-            //response will be path coordinates of current logged in user
             if(typeof response.data === 'string'){
-                //console.log(response.data); //show toast here
                 this.toast.update(toastId, { content: response.data, options: { timeout: 5000, type: "error" } });
             }else{
                 uniqueDeviceIdArray = [];
@@ -217,8 +201,7 @@ export default {
                 snappedCoordinatesArrayMap = new Map();
                 lastPositionMap = new Map();
                 firstPositionMap = new Map();
-                console.log(response.data);
-                //console.log(Object.values(response.data));
+                //console.log(response.data);
 
                 uniqueDeviceIdArray = Object.keys(response.data);
                 uniqueDeviceIdArray.forEach(function(deviceId) {
@@ -256,7 +239,6 @@ export default {
                         do {
                             try {
                                 deviceRequestCounterMap.set(key,deviceRequestCounterMap.get(key)+1);
-                                //console.log('starting axios of device ' + key);
                                 let response = await axios.get('https://roads.googleapis.com/v1/snapToRoads', { params: {
                                     interpolate: true,
                                     key: apiKey,
@@ -265,18 +247,16 @@ export default {
                                     signal: controller.signal
                                 });
                                 if (response.status == 200) {
-                                    //console.log('inside axios of device ' + key);
                                     //response is a set of coordinates snapped to the nearest road for accuracy purposes
                                     this.processRoadsResponse(response.data, key);
 
                                 }else{
-                                    console.log('Some error occurred in snapToRoads: ' + response);
+                                    console.log('Some error occurred in snapToRoads axios request: ' + response);
                                 }
                             } catch (error) {
                                 this.toast.update(toastId, { content: "Something went wrong...", options: { timeout: 3000, type: "error" } });
                                 console.log("snapToRoads failed due to: " + error);
                             };
-                            //console.log('after awaited axios of device '+ key);
                             if (values.length >= 100) {
                                 values.splice(values.length-100, 100);
                             } else {
@@ -286,7 +266,7 @@ export default {
                         }while (values.length > 0);
                     }
                 })().then(() => {
-                    //runs after all axios requests are completed
+                    //runs after all data is processed
                     this.setMarkerRotations();
 
                     controls.style.visibility = 'visible';
@@ -329,6 +309,7 @@ export default {
     },
 
     drawRoute(device_id) {
+        //draws marker on the device's starting position
         startPosMarkers.set(
             device_id,
             new google.maps.Marker({
@@ -338,7 +319,7 @@ export default {
                 icon: startPosIcon,
             })
         );
-
+        //draws polyline route
         polylines.set(
           device_id,
           new google.maps.Polyline({
@@ -348,10 +329,9 @@ export default {
               strokeOpacity: 0.5,
           })
         );
-        //draws the route path
         polylines.get(device_id).setMap(map);
 
-        //draws marker on the user's last position
+        //draws marker on the device's last position
         markers.set(
             device_id,
             new google.maps.Marker({
@@ -471,7 +451,6 @@ export default {
     selectMarker(device_id) {
         if(markers.get(device_id) == selectedMarker){ //unselect marker when clicking a selected marker
             infowindow.close();
-            selectedPolyline = null;
             selectedMarker = null;
             markers.get(device_id).setIcon(otherUsersIcon);
             polylines.get(device_id).setOptions({strokeColor: '#000000', strokeOpacity: 0.5});
@@ -485,7 +464,6 @@ export default {
             });
             markers.get(device_id).setIcon(mainIcon);
             polylines.get(device_id).setOptions({strokeColor: '#FF0000', strokeOpacity: 0.9});
-            selectedPolyline = polylines.get(device_id);
             selectedMarker = markers.get(device_id);
 
             this.updateInfoWindowValues(device_id);
@@ -511,28 +489,7 @@ export default {
         );
     },
 
-    setExportStart(){ //delete these setExport functions later
-        //console.log("setExportStart");
-        if (new Date(exportTimestampEnd).getTime()/1000 < this.slider.value) {
-            console.log('Export Date Start must be lower than the Export Date End');
-        }else{
-            var startDate = new Date(this.slider.value * 1000);
-            exportTimestampStart = startDate.toISOString().slice(0, 16);
-        }
-    },
-
-    setExportEnd(){
-        //console.log("setExportEnd");
-        if (new Date(exportTimestampStart).getTime()/1000 > this.slider.value) {
-            console.log('Export Date End must be higher than the Export Date Start');
-        }else{
-            var endDate = new Date(this.slider.value * 1000);
-            exportTimestampEnd = endDate.toISOString().slice(0, 16);
-        }
-    },
-
-    exportData(){ //TODO: change function to new logic with the new slider values
-        //use exportTimestampStart*1000 and exportTimestampEnd*1000 to get the data from the selected time range
+    exportData(){
         deviceExportData = new Map();
         deviceFullDataMap.forEach((values,keys)=>{
             deviceExportData.set(
@@ -577,7 +534,6 @@ export default {
             handler() {
                 controller.abort(); //cancel all axios requests
                 controls.style.visibility = 'hidden';
-                //console.log("filter changed");
                 selectedMarker = null;
                 startPosMarkers.forEach((values,keys)=>{
                     values.setMap(null);

@@ -93,8 +93,9 @@ export default createStore({
             state.filter.range = 500;
             var now = new Date();
             var yesterday = ( function(){this.setDate(this.getDate()-1); return this} ).call(new Date);
-            state.filter.start_date = yesterday.toISOString().slice(0, 16);;
-            state.filter.end_date = now.toISOString().slice(0, 16);;
+            state.filter.start_date = yesterday.toISOString().slice(0, 16);
+            state.filter.end_date = now.toISOString().slice(0, 16);
+            state.filter.randomFilterBoolean = !state.filter.randomFilterBoolean;
         }
 
     },

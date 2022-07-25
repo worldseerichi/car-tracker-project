@@ -139,9 +139,7 @@ export default {
         toastId = this.toast.info("Loading data...", { timeout: false });
         axios.get('api/getDataCounted').then(response => {
             //console.log(response);
-            //response will be path coordinates of current logged in user
             if(response.data == 'No data found'){
-                //console.log(response.data);
                 this.toast.update(toastId, { content: response.data, options: { timeout: 5000, type: "error" } });
             }else{
                   var uniqueUserIdArray;
@@ -184,8 +182,6 @@ export default {
 
                         ])
                   });
-                //console.log(userDataMap);
-                //console.log(Array.from(userDataMap))
                 this.s = Array.from(userDataMap)
                 this.toast.update(toastId, { content: "Data loaded.", options: { timeout: 5000, type: "success" } });
                 }
@@ -213,7 +209,6 @@ export default {
         },
     softDelete(userId){
       var self = this;
-      //console.log(userId);
       this.toast.info("Deleting account...", { id:"delete", timeout: false });
       axios.delete('api/users/'+userId)
                 .then(function (response) {
@@ -229,7 +224,6 @@ export default {
     },
     restore(userId){
       var self = this;
-      //console.log(userId);
       this.toast.info("Restoring account...", { id:"restore", timeout: false });
       axios.get('api/users/restore/'+userId)
                 .then(function (response) {
