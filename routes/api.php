@@ -25,8 +25,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //Tracking Data
 Route::get('/getData', [MapsController::class, 'getData']);
 Route::get('/getDataFiltered', [MapsController::class, 'getDataFiltered']);
+Route::get('/getDataExport/{location}/{range}/{start_date}/{end_date}', [MapsController::class, 'getDataFilteredExport']);
 Route::get('/getDataCounted', [MapsController::class, 'getDataCounted'])->withTrashed();
-//Route::get('/getAdjacentData', [MapsController::class, 'getAdjacentData']);
 
 //Post Tracking Data / Write Data
 Route::post('/postData', [MapsController::class, 'postData']);

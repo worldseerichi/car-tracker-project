@@ -99,6 +99,74 @@ class MapsController extends Controller
         return $deviceData;
     }
 
+    public function getDataFilteredExport($location, $range, $start_date, $end_date)
+    {
+        $locationCheck = preg_match('/^((\-?|\+?)?\d+(\.\d+)?),\s*((\-?|\+?)?\d+(\.\d+)?)$/i', $location);
+        if (!$locationCheck) {
+            echo 'Invalid location. Ensure it is in the format "lat,lng" and that the coordinates are valid.';
+        }
+        $location = explode(',', $location);
+
+        if ($range <= 0) {
+            echo 'Invalid range. Ensure it is greater than 0.';
+        }
+
+        $start = new DateTime($start_date);
+        $end = new DateTime($end_date);
+
+        $validDevices = Device::pluck('id')->toArray();
+
+        $data = TrackingData::whereIn('device_id', $validDevices)->whereBetween('recorded_at', [$start, $end])->get();
+        if(count($data) == 0){
+            echo 'No data found between given dates.';
+        };
+        $devices = TrackingData::whereIn('device_id', $validDevices)->select('device_id')->distinct()->get();
+        $deviceData = [];
+
+        foreach ($devices as $value) {
+            $deviceData[$value['device_id']] = $data->filter(function($data) use ($value)
+            {
+               return $data->device_id == $value['device_id'];
+            });
+        };
+
+        $earthRadius = 6371000; //meters
+
+        foreach ($deviceData as $key => $values) {
+            $shortestDistance = 6371000;
+            foreach ($values as $data) {
+                $latFrom = deg2rad(floatval($location[0]));
+                $lonFrom = deg2rad(floatval($location[1]));
+                $latTo = deg2rad($data->latitude);
+                $lonTo = deg2rad($data->longitude);
+
+                $latDelta = $latTo - $latFrom;
+                $lonDelta = $lonTo - $lonFrom;
+
+                $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) + cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+                $distance = $angle * $earthRadius; //haversine formula
+                if ($distance < $shortestDistance) {
+                    $shortestDistance = $distance;
+                }
+            }
+            if ($shortestDistance > $range) {
+                unset($deviceData[$key]);
+            }
+        }
+        if(empty($deviceData)){
+            echo 'No data found within given range.';
+        }
+        $exportData = [];
+        foreach ($deviceData as $key => $values) {
+            $exportData['Device ID '.$key] = [];
+            foreach ($values as $data) {
+                array_push($exportData['Device ID '.$key], $data);
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode($exportData, JSON_PRETTY_PRINT);
+    }
+
     public function getDataCounted(){
         //amount TrackingData::count();
         $QntOfDataAPI = [];
