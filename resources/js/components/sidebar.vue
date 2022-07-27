@@ -189,6 +189,7 @@ export default {
   position: relative;
   align-items: flex-start;
   flex-direction: column;
+  min-width: 250px;
 }
 .sidebar-sidebar {
   width: 100%;

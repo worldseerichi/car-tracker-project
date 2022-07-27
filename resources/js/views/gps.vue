@@ -20,9 +20,13 @@ import { useToast } from "vue-toastification";
 var map;
 var controller;
 // Button For Inside Of Map
+var exportDiv;
 var controlUI;
 var controlDiv;
 var controlText;
+var viewDiv;
+var viewUI;
+var viewText;
 //
 var controls;
 var snappedCoordinatesArrayMap = new Map();
@@ -130,7 +134,7 @@ export default {
                 }
             };
         map = new google.maps.Map(document.getElementById("map"), mapOptions); //creates and initializes the map
-        const centerFilterControl = this.giveButton();
+        const centerFilterControl = this.addButtons();
         map.controls[google.maps.ControlPosition.TOP_CENTER].push(centerFilterControl);
         infowindow = new google.maps.InfoWindow({
             content: '<strong>Selected Vehicle Data: </strong>' +
@@ -143,35 +147,68 @@ export default {
         this.getRouteData();
     },
 
-    giveButton(){       // Add Button Export To Google Map
-      controlDiv = document.createElement('div');
-      controlUI = document.createElement('div');
-      controlText = document.createElement('div');
-      controlUI.style.backgroundColor = '#fff';
-      controlUI.style.border = '2px solid #ebebeb';
-      controlUI.style.borderRadius = '15px';
-      controlUI.style.padding = '10px';
-      controlUI.style.cursor = 'pointer';
-      controlUI.title = 'Export Data';
-      controlDiv.appendChild(controlUI);
-      controlText.style.fontSize = '16px';
-      controlText.style.textAlign = 'center';
-      controlText.style.lineHeight = '20px';
-      controlText.style.color = '#333';
-      controlText.innerHTML = 'Export Data';
-      controlUI.appendChild(controlText);
+    addButtons(){       // Add Export/View Data buttons to map
+        exportDiv = document.createElement('div');
+        exportDiv.style.display = 'flex';
 
+        controlDiv = document.createElement('div');
+        controlUI = document.createElement('div');
+        controlText = document.createElement('div');
+        controlUI.style.backgroundColor = '#fff';
+        controlUI.style.border = '2px solid #ebebeb';
+        controlUI.style.borderRadius = '15px';
+        controlUI.style.padding = '10px';
+        controlUI.style.cursor = 'pointer';
+        controlUI.title = 'Export Data';
+        controlDiv.appendChild(controlUI);
+        controlText.style.fontSize = '16px';
+        controlText.style.textAlign = 'center';
+        controlText.style.lineHeight = '20px';
+        controlText.style.color = '#333';
+        controlText.innerHTML = 'Export Data';
+        controlUI.appendChild(controlText);
 
-      controlDiv.addEventListener('click',() => {
+        viewDiv = document.createElement('div');
+        viewUI = document.createElement('div');
+        viewText = document.createElement('div');
+        viewUI.style.backgroundColor = '#fff';
+        viewUI.style.border = '2px solid #ebebeb';
+        viewUI.style.borderRadius = '15px';
+        viewUI.style.padding = '10px';
+        viewUI.style.cursor = 'pointer';
+        viewUI.title = 'View Data';
+        viewDiv.appendChild(viewUI);
+        viewText.style.fontSize = '16px';
+        viewText.style.textAlign = 'center';
+        viewText.style.lineHeight = '20px';
+        viewText.style.color = '#333';
+        viewText.innerHTML = 'View Data';
+        viewUI.appendChild(viewText);
+
+        exportDiv.appendChild(controlDiv);
+        exportDiv.appendChild(viewDiv);
+
+        controlDiv.addEventListener('click',() => {
             if(deviceFullDataMap.size === 0){
-                console.log("No Data To Export");
+                this.toast.info("No data to export.", { timeout: 5000 });
             }else{
                 this.exportData();
             }
+        });
 
-      });
+        viewDiv.addEventListener('click',() => {
+            if(deviceFullDataMap.size === 0){
+                this.toast.info("No data to view.", { timeout: 5000 });
+            }else{
+                window.open('api/getDataExport/'+
+                            this.$store.getters.getLocation+'/'+
+                            this.$store.getters.getRange+'/'+
+                            this.$store.getters.getStartDate.replace('/','.')+'/'+
+                            this.$store.getters.getEndDate.replace('/','.'), "_blank");
+            }
+        });
 
-      return controlDiv;
+        return exportDiv;
     },
 
     getRouteData() {
