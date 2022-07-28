@@ -140,7 +140,7 @@ export default {
         axios.get('api/getDataCounted').then(response => {
             //console.log(response);
             if(response.data == 'No data found'){
-                this.toast.update(toastId, { content: response.data, options: { timeout: 5000, type: "error" } });
+                this.toast.update(toastId, { content: response.data, options: { timeout: 5000, type: "error" } }, true);
             }else{
                   var uniqueUserIdArray;
                   var userDataMap = new Map();
@@ -183,11 +183,11 @@ export default {
                         ])
                   });
                 this.s = Array.from(userDataMap)
-                this.toast.update(toastId, { content: "Data loaded.", options: { timeout: 5000, type: "success" } });
+                this.toast.update(toastId, { content: "Data loaded.", options: { timeout: 5000, type: "success" } }, true);
                 }
       })
         .catch(e => {
-            this.toast.update(toastId, { content: "Something went wrong...", options: { timeout: 3000, type: "error" } });
+            this.toast.update(toastId, { content: "Something went wrong...", options: { timeout: 3000, type: "error" } }, true);
             console.log("getTableData failed due to: " + e);
         });
 
@@ -198,12 +198,12 @@ export default {
             axios.post('api/registration-request', { username: this.username, password: this.password })
                 .then(function (response) {
                     //console.log(response);
-                    self.toast.update("register", { content: response.data, options: { timeout: 5000, type: "success" } });
+                    self.toast.update("register", { content: response.data, options: { timeout: 5000, type: "success" } }, true);
                     self.getTableData();
                 })
                 .catch(function (error) {
                     console.log(error);
-                    self.toast.update("register", { content: "Something went wrong...", options: { timeout: 3000, type: "error" } });
+                    self.toast.update("register", { content: "Something went wrong...", options: { timeout: 3000, type: "error" } }, true);
                 });
 
         },
@@ -213,12 +213,12 @@ export default {
       axios.delete('api/users/'+userId)
                 .then(function (response) {
                     //console.log(response);
-                    self.toast.update("delete", { content: response.data, options: { timeout: 5000, type: "success" } });
+                    self.toast.update("delete", { content: response.data, options: { timeout: 5000, type: "success" } }, true);
                     self.getTableData();
                 })
                 .catch(function (error) {
                     console.log(error);
-                    self.toast.update("delete", { content: "Something went wrong...", options: { timeout: 3000, type: "error" } });
+                    self.toast.update("delete", { content: "Something went wrong...", options: { timeout: 3000, type: "error" } }, true);
                 });
 
     },
@@ -228,12 +228,12 @@ export default {
       axios.get('api/users/restore/'+userId)
                 .then(function (response) {
                     //console.log(response);
-                    self.toast.update("restore", { content: response.data, options: { timeout: 5000, type: "success" } });
+                    self.toast.update("restore", { content: response.data, options: { timeout: 5000, type: "success" } }, true);
                     self.getTableData();
                 })
                 .catch(function (error) {
                     console.log(error);
-                    self.toast.update("restore", { content: "Something went wrong...", options: { timeout: 3000, type: "error" } });
+                    self.toast.update("restore", { content: "Something went wrong...", options: { timeout: 3000, type: "error" } }, true);
                 });
 
 
@@ -247,6 +247,15 @@ export default {
 
         return { toast };
     },
+    watch: {
+        '$store.state.adminLogged': {
+            handler() {
+                if (this.$store.getters.getAdminLogged == false) {
+                    this.$router.push('/login');
+                };
+            }
+        },
+    }
 }
 </script>
 <style scoped>

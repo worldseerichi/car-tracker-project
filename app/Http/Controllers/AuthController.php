@@ -80,7 +80,6 @@ class AuthController extends Controller
 
     public function registrationRequest(Request $request)
     {
-        var_dump(Auth::user());
         if (!Auth::check() || Auth::user()->is_admin == 0) {
             return 'You are not allowed to register accounts.';
         }
