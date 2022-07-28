@@ -94,7 +94,7 @@ class UserController extends Controller
     public function destroy($id)
     {
         if (!Auth::check() || Auth::user()->is_admin == 0) {
-            return 'You are not allowed to delete accounts';
+            return 'You are not allowed to delete accounts.';
         }
         $user = User::find($id);
         $devices = Device::where('user_id', $id)->get();
@@ -104,20 +104,20 @@ class UserController extends Controller
         }
 
 
-        return "User Successfully Deleted";
+        return "Account deleted.";
     }
 
     public function restore($id)
     {
         if (!Auth::check() || Auth::user()->is_admin == 0) {
-            return 'You are not allowed to restore accounts';
+            return 'You are not allowed to restore accounts.';
         }
         User::withTrashed()->find($id)->restore();
         $devices = Device::withTrashed()->where('user_id', $id)->get();
         foreach ($devices as $device) {
             $device->restore();
         }
-        return "User Sucessfully Restored";
+        return "Account restored.";
     }
      /**
      * restore all post

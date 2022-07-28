@@ -80,8 +80,9 @@ class AuthController extends Controller
 
     public function registrationRequest(Request $request)
     {
+        var_dump(Auth::user());
         if (!Auth::check() || Auth::user()->is_admin == 0) {
-            return 'You are not allowed to register accounts';
+            return 'You are not allowed to register accounts.';
         }
         $request->validate([
             'username' => 'required',
@@ -93,14 +94,14 @@ class AuthController extends Controller
         });
 
         if($userCheck != 'Not found'){
-            return 'User already exists';
+            return 'Account already exists.';
         }
 
         $data = $request->only('username', 'password');
         $check = $this->create($data);
         //Device::create(['user_id' => $check['id']]);
 
-        return 'User created';
+        return 'Account registered.';
     }
 
     public function create(array $data)
