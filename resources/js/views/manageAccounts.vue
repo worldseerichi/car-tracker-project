@@ -198,7 +198,7 @@ export default {
             axios.post('api/registration-request', { username: this.username, password: this.password })
                 .then(function (response) {
                     //console.log(response);
-                    self.toast.update("register", { content: "Account registered.", options: { timeout: 5000, type: "success" } });
+                    self.toast.update("register", { content: response.data, options: { timeout: 5000, type: "success" } });
                     self.getTableData();
                 })
                 .catch(function (error) {
@@ -213,7 +213,7 @@ export default {
       axios.delete('api/users/'+userId)
                 .then(function (response) {
                     //console.log(response);
-                    self.toast.update("delete", { content: "Account deleted.", options: { timeout: 5000, type: "success" } });
+                    self.toast.update("delete", { content: response.data, options: { timeout: 5000, type: "success" } });
                     self.getTableData();
                 })
                 .catch(function (error) {
@@ -228,7 +228,7 @@ export default {
       axios.get('api/users/restore/'+userId)
                 .then(function (response) {
                     //console.log(response);
-                    self.toast.update("restore", { content: "Account restored.", options: { timeout: 5000, type: "success" } });
+                    self.toast.update("restore", { content: response.data, options: { timeout: 5000, type: "success" } });
                     self.getTableData();
                 })
                 .catch(function (error) {
