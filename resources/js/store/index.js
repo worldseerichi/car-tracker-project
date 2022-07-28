@@ -46,7 +46,7 @@ export default createStore({
                     if (response.data=='/'){
                         //console.log(response)
                         //console.log("login success");
-                        toast.update("login", { content: "Login successful.", options: { timeout: 3000, type: "success" } });
+                        toast.update("login", { content: "Login successful.", options: { timeout: 3000, type: "success" } }, true);
                         //state.key = response.data.access_token
                         state.adminLogged = true;
 
@@ -54,11 +54,11 @@ export default createStore({
                     }else{
                         // self.$router.push('login')
                         //console.log("login failed");
-                        toast.update("login", { content: "Login failed.", options: { timeout: 3000, type: "error" } });
+                        toast.update("login", { content: "Login failed.", options: { timeout: 3000, type: "error" } }, true);
                     }
                 })
                 .catch(function (error) {
-                    toast.update("login", { content: "Something went wrong...", options: { timeout: 3000, type: "error" } });
+                    toast.update("login", { content: "Something went wrong...", options: { timeout: 3000, type: "error" } }, true);
                     console.log(error);
                 });
 
@@ -69,9 +69,9 @@ export default createStore({
             axios.post('api/signout').then(response => {
                 state.adminLogged = false;
                 //console.log("signed out");
-                toast.update("signout", { content: "Signout successful.", options: { timeout: 3000, type: "success" } });
+                toast.update("signout", { content: "Signout successful.", options: { timeout: 3000, type: "success" } }, true);
             }).catch(function (error) {
-                toast.update("signout", { content: "Something went wrong...", options: { timeout: 3000, type: "error" } });
+                toast.update("signout", { content: "Something went wrong...", options: { timeout: 3000, type: "error" } }, true);
                 console.log(error);
             });
         },

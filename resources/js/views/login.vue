@@ -100,7 +100,7 @@ export default {
             this.toast.info("Checking for data...", { id:"seed", timeout: false });
             axios.get('api/getData').then(response => {
                 if(response.data == 'No data found'){
-                    self.toast.update("seed", { content: "Injecting data for testing...\nPlease don't refresh the page until it is finished.", options: { timeout: false, type: "info" } });
+                    self.toast.update("seed", { content: "Injecting data for testing...\nPlease don't refresh the page until it is finished.", options: { timeout: false, type: "info" } }, true);
                     var path = [[39.740528602899865, -8.801482462302717],
                                 [39.74075160189905, -8.802157352730438],
                                 [39.74093330425473, -8.802497483177147],
@@ -247,7 +247,7 @@ export default {
                             for (const value of values[1]) {
                                 //console.log('sending data for device '+values[0]);
                                 counter++;
-                                self.toast.update("seed", { content: "Injecting data for testing...\nPlease don't refresh the page until it is finished.\nProgress: "+counter+"/"+total, options: { timeout: false, type: "info" } });
+                                self.toast.update("seed", { content: "Injecting data for testing...\nPlease don't refresh the page until it is finished.\nProgress: "+counter+"/"+total, options: { timeout: false, type: "info" } }, true);
                                 await Promise.all([
                                 axios.post('api/postDataTesting', {latitude: value[0], longitude: value[1], device_id: values[0]}),
                                 new Promise(resolve => setTimeout(resolve, 2000))]);
@@ -255,12 +255,12 @@ export default {
                         })().then(() => {
                             //console.log('done device ' + values[0]);
                             if(counter == total){
-                                self.toast.update("seed", { content: "Data injection complete.", options: { timeout: 5000, type: "success" } });
+                                self.toast.update("seed", { content: "Data injection complete.", options: { timeout: 5000, type: "success" } }, true);
                             }
                         });
                     });
                 }else{
-                    self.toast.update("seed", { content: "No data injection required.", options: { timeout: 5000, type: "info" } });
+                    self.toast.update("seed", { content: "No data injection required.", options: { timeout: 5000, type: "info" } }, true);
                 }
             });
         }
