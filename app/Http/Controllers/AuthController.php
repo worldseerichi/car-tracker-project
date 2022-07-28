@@ -25,7 +25,7 @@ class AuthController extends Controller
         $username = $request->input('username');
         $password = $request->input('password');
         //$credentials = $request->only('username', 'password');
-        if (Auth::attempt(['username' => $username, 'password' => $password, 'is_admin' => 1, 'deleted_at' => null], true)) {
+        if (Auth::attempt(['username' => $username, 'password' => $password, 'is_admin' => 1, 'deleted_at' => null],true)) {
             $redir = '/';
         }
 
@@ -80,6 +80,7 @@ class AuthController extends Controller
 
     public function registrationRequest(Request $request)
     {
+        var_dump(Auth::guest());
         if (!Auth::check() || Auth::user()->is_admin == 0) {
             return 'You are not allowed to register accounts.';
         }
