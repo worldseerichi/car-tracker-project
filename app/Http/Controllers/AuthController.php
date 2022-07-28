@@ -100,7 +100,7 @@ class AuthController extends Controller
         $check = $this->create($data);
         //Device::create(['user_id' => $check['id']]);
 
-        return 'User created';
+        return 'Account registered.';
     }
 
     public function create(array $data)

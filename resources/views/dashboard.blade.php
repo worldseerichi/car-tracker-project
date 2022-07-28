@@ -34,12 +34,3 @@
     <!--<script src="https://unpkg.com/@teleporthq/teleport-custom-scripts"></script>-->
   </body>
 </html>
-
-<html>
-<body>
-
-<h1>My First Heading</h1>
-<p>My first paragraph.</p>
-
-</body>
-</html>
