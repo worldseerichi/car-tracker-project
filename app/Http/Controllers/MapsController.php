@@ -172,10 +172,6 @@ class MapsController extends Controller
         $QntOfDataAPI = [];
         $devices = Device::withTrashed()->get();
         $devicesCounter = count(TrackingData::select('device_id')->distinct()->get());
-        $data = TrackingData::get();
-        if(count($data) == 0){
-            return 'No data found';
-        };
         if($devicesCounter==0){
             $QntOfDataAPI = "Empty";
         }else{
