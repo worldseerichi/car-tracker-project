@@ -1,22 +1,62 @@
 version: "3.7"
 
 services:
-    # image project
+    # Car Tracking Service
     app:
-        container_name: laraveltest
+        container_name: CarTrackingPlataform
         build:
             context: .
             dockerfile: Dockerfile
-        image: phpfpm8.1
+        image: l9v3php8v2
         restart: unless-stopped
         working_dir: /var/www/
         volumes:
             - ./:/var/www
+            - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
         ports: 
-            - "8080:80"            
+            - "8000:8000"            
         networks: 
             - laravel-9
 
+    #MySQL Service
+    db:
+        image: mysql:8
+        container_name: db
+        restart: unless-stopped
+        tty: true
+        ports:
+        - "3306:3306"
+        environment:
+            MYSQL_DATABASE: vehicletrackerdb
+            MYSQL_ROOT_PASSWORD: toor
+            MYSQL_PASSWORD: toor
+            MYSQL_USER: root
+            SERVICE_TAGS: dev
+            SERVICE_NAME: mysql
+        volumes:
+            - dbdata:/var/lib/mysql/
+            - ./mysql/my.cnf:/etc/mysql/my.cnf
+        networks:
+            - laravel-9
+    
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        ports:
+        - "7000:80"
+        links:
+        - db:db
+        environment:
+            MYSQL_USER: root
+            MYSQL_PASSWORD: toor
+            MYSQL_ROOT_PASSWORD: toor
+        networks:
+            - laravel-9
+
+#Networks
 networks: 
     laravel-9:
         driver: bridge
+#Volumes
+volumes:
+  dbdata:
+    driver: local
