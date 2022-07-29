@@ -200,7 +200,7 @@ export default {
             if(deviceFullDataMap.size === 0){
                 this.toast.info("No data to view.", { timeout: 5000 });
             }else{
-                window.open('api/getDataExport/'+
+                window.open('/api/getDataDExport/'+
                             this.$store.getters.getLocation+'/'+
                             this.$store.getters.getRange+'/'+
                             this.$store.getters.getStartDate.replace('/','.')+'/'+
