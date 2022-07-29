@@ -13,9 +13,9 @@ services:
         volumes:
             - ./:/var/www
             - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
-        ports: 
-            - "8000:8000"            
-        networks: 
+        ports:
+            - "8000:8000"
+        networks:
             - laravel-9
 
     #MySQL Service
@@ -30,7 +30,6 @@ services:
             MYSQL_DATABASE: vehicletrackerdb
             MYSQL_ROOT_PASSWORD: toor
             MYSQL_PASSWORD: toor
-            MYSQL_USER: root
             SERVICE_TAGS: dev
             SERVICE_NAME: mysql
         volumes:
@@ -38,7 +37,7 @@ services:
             - ./mysql/my.cnf:/etc/mysql/my.cnf
         networks:
             - laravel-9
-    
+
     phpmyadmin:
         image: phpmyadmin/phpmyadmin
         ports:
@@ -53,7 +52,7 @@ services:
             - laravel-9
 
 #Networks
-networks: 
+networks:
     laravel-9:
         driver: bridge
 #Volumes

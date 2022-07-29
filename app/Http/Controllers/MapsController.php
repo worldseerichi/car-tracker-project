@@ -101,6 +101,8 @@ class MapsController extends Controller
 
     public function getDataFilteredExport($location, $range, $start_date, $end_date)
     {
+        $start_date = str_replace("h", ":", $start_date);
+        $end_date = str_replace("h", ":", $end_date);
         $locationCheck = preg_match('/^((\-?|\+?)?\d+(\.\d+)?),\s*((\-?|\+?)?\d+(\.\d+)?)$/i', $location);
         if (!$locationCheck) {
             echo 'Invalid location. Ensure it is in the format "lat,lng" and that the coordinates are valid.';
@@ -171,16 +173,13 @@ class MapsController extends Controller
         //amount TrackingData::count();
         $QntOfDataAPI = [];
         $devices = Device::withTrashed()->get();
-        $devicesCounter = count(TrackingData::select('device_id')->distinct()->get());
-        if($devicesCounter==0){
-            $QntOfDataAPI = "Empty";
+        if(count($devices)==0){
+            return 'No data found';
         }else{
-            for ($i = 1; $i <= $devicesCounter; $i++) {
-                $QntOfDataAPI[$i] = count(TrackingData::where("device_id", $i )->get());
+            foreach ($devices as $device) {
+                $QntOfDataAPI[$device['id']] = count(TrackingData::where("device_id", $device['id'] )->get());
             }
         }
-
-
         $users = User::withTrashed()->where('is_admin', 0)->get();
         return array('requestamounts' => array($QntOfDataAPI), 'devices' => $devices, 'users' => $users);
     }
