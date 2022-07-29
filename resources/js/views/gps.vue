@@ -199,11 +199,17 @@ export default {
             if(deviceFullDataMap.size === 0){
                 this.toast.info("No data to view.", { timeout: 5000 });
             }else{
+                var startDate = new Date(exportTimestampStart*1000);
+                var endDate = new Date(exportTimestampEnd*1000);
+                startDate.setMinutes(startDate.getMinutes() - startDate.getTimezoneOffset());
+                endDate.setMinutes(endDate.getMinutes() - endDate.getTimezoneOffset());
+                startDate = startDate.toISOString().slice(0, 16).replace('/', '-').replace(':', 'h');
+                endDate = endDate.toISOString().slice(0, 16).replace('/', '-').replace(':', 'h');
                 window.open('/api/getDataExport/'+
                             this.$store.getters.getLocation+'/'+
                             this.$store.getters.getRange+'/'+
-                            this.$store.getters.getStartDate.replace('/','-').replace(':','h')+'/'+
-                            this.$store.getters.getEndDate.replace('/','-').replace(':','h'), "_blank");
+                            startDate+'/'+
+                            endDate, "_blank");
             }
         });
 
