@@ -49,7 +49,6 @@ var deviceRequestsRequiredMap = new Map();
 var deviceRequestCounterMap = new Map();
 var exportTimestampStart = 0;
 var exportTimestampEnd = 0;
-var deviceExportData = new Map();
 var infowindow;
 var rangeSlider = null;
 var toastId = null;
@@ -527,21 +526,29 @@ export default {
     },
 
     exportData(){
-        deviceExportData = new Map();
-        deviceFullDataMap.forEach((values,keys)=>{
-            deviceExportData.set(
-                keys,
-                values.filter(data => new Date(data.recorded_at) >= new Date(exportTimestampStart*1000) && new Date(data.recorded_at) <= new Date(exportTimestampEnd*1000))
-                .map(function (data) { return data; })
-                );
-        });
-        deviceExportData.forEach((values,keys)=>{
-            if (values.length == 0) {
-                deviceExportData.delete(keys);
-            }
-        });
-        this.downloadObjectAsJson({ Data: Array.from(deviceExportData)} ,"TrackingData");
-        this.toast.success('Data exported successfully.', { timeout: 5000 });
+        var startDate = new Date(exportTimestampStart*1000);
+        var endDate = new Date(exportTimestampEnd*1000);
+        startDate.setMinutes(startDate.getMinutes() - startDate.getTimezoneOffset());
+        endDate.setMinutes(endDate.getMinutes() - endDate.getTimezoneOffset());
+        startDate = startDate.toISOString().slice(0, 16).replace('/', '-').replace(':', 'h');
+        endDate = endDate.toISOString().slice(0, 16).replace('/', '-').replace(':', 'h');
+        this.toast.info("Exporting...", { id: "export", timeout: false });
+        axios.get('/api/getDataDownload/'+
+                            this.$store.getters.getLocation+'/'+
+                            this.$store.getters.getRange+'/'+
+                            startDate+'/'+
+                            endDate)
+            .then(response => {
+                if (typeof response.data === 'string') {
+                    this.toast.update("export", { content: response.data, options: { timeout: 5000, type: "error" } }, true);
+                }else{
+                    this.downloadObjectAsJson({ Data: response.data} ,"TrackingData");
+                    this.toast.update("export", { content: "Data exported successfully", options: { timeout: 5000, type: "success" } }, true);
+                }
+            }).catch(error => {
+                console.log(error);
+                this.toast.update("export", { content: "Failed exporting data.", options: { timeout: 5000, type: "error" } }, true);
+            });
     },
 
     downloadObjectAsJson(exportObj, exportName){
