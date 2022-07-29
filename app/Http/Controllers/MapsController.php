@@ -105,12 +105,12 @@ class MapsController extends Controller
         $end_date = str_replace("h", ":", $end_date);
         $locationCheck = preg_match('/^((\-?|\+?)?\d+(\.\d+)?),\s*((\-?|\+?)?\d+(\.\d+)?)$/i', $location);
         if (!$locationCheck) {
-            echo 'Invalid location. Ensure it is in the format "lat,lng" and that the coordinates are valid.';
+            return 'Invalid location. Ensure it is in the format "lat,lng" and that the coordinates are valid.';
         }
         $location = explode(',', $location);
 
         if ($range <= 0) {
-            echo 'Invalid range. Ensure it is greater than 0.';
+            return 'Invalid range. Ensure it is greater than 0.';
         }
 
         $start = new DateTime($start_date);
@@ -120,7 +120,7 @@ class MapsController extends Controller
 
         $data = TrackingData::whereIn('device_id', $validDevices)->whereBetween('recorded_at', [$start, $end])->get();
         if(count($data) == 0){
-            echo 'No data found between given dates.';
+            return 'No data found between given dates.';
         };
         $devices = TrackingData::whereIn('device_id', $validDevices)->select('device_id')->distinct()->get();
         $deviceData = [];
@@ -156,8 +156,8 @@ class MapsController extends Controller
             }
         }
         if(empty($deviceData)){
-            echo 'No data found within given range.';
-        }
+            return 'No data found within given range.';
+        }else{
         $exportData = [];
         foreach ($deviceData as $key => $values) {
             $exportData['Device ID '.$key] = [];
@@ -167,6 +167,7 @@ class MapsController extends Controller
         }
         header('Content-Type: application/json');
         echo json_encode($exportData, JSON_PRETTY_PRINT);
+        }
     }
 
     public function getDataFilteredDownload($location, $range, $start_date, $end_date)
