@@ -225,7 +225,7 @@ export default {
                                                     start_date: this.$store.getters.getStartDate,
                                                     end_date: this.$store.getters.getEndDate}}).then(response => {
             if(typeof response.data === 'string'){
-                this.toast.update(toastId, { content: response.data, options: { timeout: 5000, type: "error" } });
+                this.toast.update(toastId, { content: response.data, options: { timeout: 5000, type: "error" } }, true);
             }else{
                 uniqueDeviceIdArray = [];
                 deviceDataMap = new Map();
@@ -291,7 +291,7 @@ export default {
                                     console.log('Some error occurred in snapToRoads axios request: ' + response);
                                 }
                             } catch (error) {
-                                this.toast.update(toastId, { content: "Something went wrong...", options: { timeout: 3000, type: "error" } });
+                                this.toast.update(toastId, { content: "Something went wrong...", options: { timeout: 3000, type: "error" } }, true);
                                 console.log("snapToRoads failed due to: " + error);
                             };
                             if (values.length >= 100) {
@@ -309,15 +309,15 @@ export default {
                     controls.style.visibility = 'visible';
                     this.setSliderValues();
 
-                    this.toast.update(toastId, { content: "Data loaded.", options: { timeout: 5000, type: "success" } });
+                    this.toast.update(toastId, { content: "Data loaded.", options: { timeout: 5000, type: "success" } }, true);
                 }).catch(error => {
-                    this.toast.update(toastId, { content: "Something went wrong...", options: { timeout: 3000, type: "error" } });
+                    this.toast.update(toastId, { content: "Something went wrong...", options: { timeout: 3000, type: "error" } }, true);
                     console.log('Error in async anonymous function: ' + error);
                 });
             };
         })
         .catch(e => {
-            this.toast.update(toastId, { content: "Something went wrong...", options: { timeout: 3000, type: "error" } });
+            this.toast.update(toastId, { content: "Something went wrong...", options: { timeout: 3000, type: "error" } }, true);
             console.log("getData failed due to: " + e);
         });
     },
