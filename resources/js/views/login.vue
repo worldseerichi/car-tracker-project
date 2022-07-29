@@ -256,6 +256,7 @@ export default {
                             //console.log('done device ' + values[0]);
                             if(counter == total){
                                 self.toast.update("seed", { content: "Data injection complete.", options: { timeout: 5000, type: "success" } }, true);
+                                this.$store.commit('resetFilter');
                             }
                         });
                     });
