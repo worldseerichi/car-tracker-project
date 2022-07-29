@@ -7,7 +7,7 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
-        image: l9v3php8v2
+        image: cartrackerplataform
         restart: unless-stopped
         working_dir: /var/www/
         volumes:
@@ -35,19 +35,6 @@ services:
         volumes:
             - dbdata:/var/lib/mysql/
             - ./mysql/my.cnf:/etc/mysql/my.cnf
-        networks:
-            - laravel-9
-
-    phpmyadmin:
-        image: phpmyadmin/phpmyadmin
-        ports:
-        - "7000:80"
-        links:
-        - db:db
-        environment:
-            MYSQL_USER: root
-            MYSQL_PASSWORD: toor
-            MYSQL_ROOT_PASSWORD: toor
         networks:
             - laravel-9
 
