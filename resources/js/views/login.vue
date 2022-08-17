@@ -263,6 +263,8 @@ export default {
                 }else{
                     self.toast.update("seed", { content: "No data injection required.", options: { timeout: 5000, type: "info" } }, true);
                 }
+            }).catch(err => {
+                self.toast.update("seed", { content: "Error: "+err, options: { timeout: 5000, type: "error" } }, true);
             });
         }
     },

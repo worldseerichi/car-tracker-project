@@ -220,10 +220,10 @@ export default {
         toastId = this.toast.info("Loading data...", { timeout: false });
         var self = this;
         controller = new AbortController();
-        console.log(this.$store.getters.getLocation);
+        /*console.log(this.$store.getters.getLocation);
         console.log(this.$store.getters.getRange);
         console.log(this.$store.getters.getStartDate);
-        console.log(this.$store.getters.getEndDate);
+        console.log(this.$store.getters.getEndDate); */
         axios.get('api/getDataFiltered', {signal: controller.signal,
                                             params: {location: this.$store.getters.getLocation,
                                                     range: this.$store.getters.getRange,
@@ -438,15 +438,15 @@ export default {
         exportTimestampStart = pos.from;
         exportTimestampEnd = pos.to;
         deviceFullDataMap.forEach((values,keys)=>{
-            var sliderPositionTo = this.getDataClosestToSliderPosition(values, pos.to);
-            var sliderPositionToIndex = values.indexOf(sliderPositionTo);
-            var sliderPositionToLatLng = new google.maps.LatLng(sliderPositionTo.latitude, sliderPositionTo.longitude);
-
             var sliderPositionFrom = this.getDataClosestToSliderPosition(values, pos.from);
             var sliderPositionFromLatLng = new google.maps.LatLng(sliderPositionFrom.latitude, sliderPositionFrom.longitude);
             this.moveMarker(startPosMarkers.get(keys), sliderPositionFromLatLng, 180);
 
-            if (sliderPositionToIndex == values.length-1) {
+            var sliderPositionTo = this.getDataClosestToSliderPosition(values, pos.to);
+            var sliderPositionToLatLng = new google.maps.LatLng(sliderPositionTo.latitude, sliderPositionTo.longitude);
+            /*var sliderPositionToIndex = values.indexOf(sliderPositionTo);
+
+            if (sliderPositionToIndex == values.length-1) { //calculated heading
                 var previousPosition = values[sliderPositionToIndex-1];
                 var previousPositionLatLng = new google.maps.LatLng(previousPosition.latitude, previousPosition.longitude);
                 var heading = google.maps.geometry.spherical.computeHeading(previousPositionLatLng, sliderPositionToLatLng);
@@ -458,7 +458,9 @@ export default {
                 var heading = google.maps.geometry.spherical.computeHeading(sliderPositionToLatLng, nextPositionLatLng);
 
                 this.moveMarker(markers.get(keys), sliderPositionToLatLng, heading);
-            }
+            } */
+
+            this.moveMarker(markers.get(keys), sliderPositionToLatLng, sliderPositionTo.bearing); //using heading from DB
         });
         if (selectedMarker != null) {
             markers.forEach((value, key) => {
@@ -478,13 +480,18 @@ export default {
 
     setMarkerRotations(){
         deviceFullDataMap.forEach((values,keys)=>{
-            if (values.length > 1) {
+            /*if (values.length > 1) { //calculated heading
                 var currentPos = values[values.length-1];
                 var previousPos = values[values.length-2];
                 var currentPosLatLng = new google.maps.LatLng(currentPos.latitude, currentPos.longitude);
                 var previousPosLatLng = new google.maps.LatLng(previousPos.latitude, previousPos.longitude);
                 var heading = google.maps.geometry.spherical.computeHeading(previousPosLatLng, currentPosLatLng);
                 markers.get(keys).getIcon().rotation = heading;
+                markers.get(keys).setIcon(markers.get(keys).getIcon());
+            } */
+            if (values.length > 0) { //using heading from DB
+                var currentPos = values[values.length-1];
+                markers.get(keys).getIcon().rotation = currentPos.bearing;
                 markers.get(keys).setIcon(markers.get(keys).getIcon());
             }
         });
