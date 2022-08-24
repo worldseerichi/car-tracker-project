@@ -22,6 +22,9 @@ class MapsController extends Controller
 
     public function getData()
     {
+        if (!Auth::check() || Auth::user()->is_admin == 0) {
+            return 'You do not have the necessary permissions to perform this request.';
+        }
         $validDevices = Device::pluck('id')->toArray();
         $data = TrackingData::whereIn('device_id', $validDevices)->get();
 
@@ -34,6 +37,9 @@ class MapsController extends Controller
 
     public function getDataFiltered(Request $request)
     {
+        if (!Auth::check() || Auth::user()->is_admin == 0) {
+            return 'You do not have the necessary permissions to perform this request.';
+        }
         $request->validate([
             'location' => 'required|string',
             'range' => 'required|numeric',
@@ -101,6 +107,9 @@ class MapsController extends Controller
 
     public function getDataFilteredExport($location, $range, $start_date, $end_date)
     {
+        if (!Auth::check() || Auth::user()->is_admin == 0) {
+            return 'You do not have the necessary permissions to perform this request.';
+        }
         $start_date = str_replace("h", ":", $start_date);
         $end_date = str_replace("h", ":", $end_date);
         $locationCheck = preg_match('/^((\-?|\+?)?\d+(\.\d+)?),\s*((\-?|\+?)?\d+(\.\d+)?)$/i', $location);
@@ -172,6 +181,9 @@ class MapsController extends Controller
 
     public function getDataFilteredDownload($location, $range, $start_date, $end_date)
     {
+        if (!Auth::check() || Auth::user()->is_admin == 0) {
+            return 'You do not have the necessary permissions to perform this request.';
+        }
         $start_date = str_replace("h", ":", $start_date);
         $end_date = str_replace("h", ":", $end_date);
         $locationCheck = preg_match('/^((\-?|\+?)?\d+(\.\d+)?),\s*((\-?|\+?)?\d+(\.\d+)?)$/i', $location);
@@ -240,6 +252,9 @@ class MapsController extends Controller
     }
 
     public function getDataCounted(){
+        if (!Auth::check() || Auth::user()->is_admin == 0) {
+            return 'You do not have the necessary permissions to perform this request.';
+        }
         //amount TrackingData::count();
         $QntOfDataAPI = [];
         $devices = Device::withTrashed()->get();
