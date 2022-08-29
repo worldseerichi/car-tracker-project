@@ -4,7 +4,10 @@ services:
     # Car Tracking Service
     app:
         container_name: CarTrackingPlataform
-        image: giurian/cartrackergps:latest
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: cartrackingplataform
         restart: unless-stopped
         working_dir: /var/www/
         volumes:
@@ -35,6 +38,16 @@ services:
             - ./mysql/my.cnf:/etc/mysql/my.cnf
         networks:
             - laravel-9
+
+    cypress:
+        image: "cypress/included:4.4.0"
+        depends_on:
+            - app
+        #environment:
+        #    - CYPRESS_baseUrl=http://localhost
+        working_dir: /e2e
+        volumes:
+            - ./:/e2e
 
 #Networks
 networks:

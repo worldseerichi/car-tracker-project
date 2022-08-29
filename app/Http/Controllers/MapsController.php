@@ -22,9 +22,9 @@ class MapsController extends Controller
 
     public function getData()
     {
-        if (!Auth::check() || Auth::user()->is_admin == 0) {
+        /*if (!Auth::check() || Auth::user()->is_admin == 0) {
             return 'You do not have the necessary permissions to perform this request.';
-        }
+        }*/
         $validDevices = Device::pluck('id')->toArray();
         $data = TrackingData::whereIn('device_id', $validDevices)->get();
 

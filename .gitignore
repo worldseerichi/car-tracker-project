@@ -15,3 +15,5 @@ yarn-error.log
 /.vscode
 laradock/
 public/js/app.js
+/cypress/screenshots
+/cypress/videos

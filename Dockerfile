@@ -1,5 +1,4 @@
-
-FROM php:8.1.1-fpm as stage1
+FROM php:8.1.1-fpm
 
 # Arguments
 ARG user=Administrador
@@ -24,7 +23,7 @@ RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd sockets
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# COPY --from=mysql:5.7 /usr/bin/mysql /usr/bin/mysql 
+# COPY --from=mysql:5.7 /usr/bin/mysql /usr/bin/mysql
 
 
 # Install Node Js into project
@@ -42,9 +41,8 @@ WORKDIR /var/www
 COPY . .
 
 RUN chown -R $user:$user  /var/www
-RUN composer install 
+RUN composer install
 RUN npm install
 
 
 USER $user
-
