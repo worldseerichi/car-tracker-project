@@ -556,7 +556,7 @@ export default {
                     this.toast.update("export", { content: response.data, options: { timeout: 5000, type: "error" } }, true);
                 }else{
                     this.downloadObjectAsJson({ Data: response.data} ,"TrackingData");
-                    this.toast.update("export", { content: "Data exported successfully", options: { timeout: 5000, type: "success" } }, true);
+                    this.toast.update("export", { content: "Data exported successfully.", options: { timeout: 5000, type: "success" } }, true);
                 }
             }).catch(error => {
                 console.log(error);

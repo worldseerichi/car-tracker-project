@@ -3,7 +3,7 @@ version: "3.7"
 services:
     # Car Tracking Service
     app:
-        container_name: CarTrackingPlataform
+        container_name: CarTrackingPlatform
         build:
             context: .
             dockerfile: Dockerfile
@@ -22,7 +22,7 @@ services:
     #MySQL Service
     db:
         image: mysql:8
-        container_name: db
+        container_name: DB
         restart: unless-stopped
         tty: true
         ports:
@@ -41,10 +41,11 @@ services:
 
     cypress:
         image: "cypress/included:4.4.0"
+        container_name: Cypress
         depends_on:
             - app
-        #environment:
-        #    - CYPRESS_baseUrl=http://localhost
+        environment:
+            - CYPRESS_baseUrl=http://host.docker.internal:80   #host.docker.internal -> access localhost in nginx container
         working_dir: /e2e
         volumes:
             - ./:/e2e

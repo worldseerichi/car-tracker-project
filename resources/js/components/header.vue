@@ -9,7 +9,7 @@
     </div>
     <div class="header-container2"></div>
     <div class="header-container3">
-        <div class="header-container4" style="cursor: pointer;" @click="toggleSidebar()">
+        <div class="header-container42" style="cursor: pointer;" @click="toggleSidebar()">
             <svg viewBox="0 0 1024 1024" class="header-icon17">
                 <path
                     d="M64 192h896v192h-896zM64 448h896v192h-896zM64 704h896v192h-896z"
@@ -115,7 +115,7 @@ export default {
   width: 24px;
   height: 24px;
 }
-.header-container4 {
+.header-container4, .header-container42 {
   display: flex;
   align-self: center;
   align-items: flex-start;
@@ -272,7 +272,7 @@ export default {
 .header-navlink3 {
   display: contents;
 }
-.header-container4 {
+.header-container4, .header-container42 {
   display: flex;
   align-self: center;
   align-items: center;
@@ -393,7 +393,7 @@ export default {
   .header-heading1 {
     color: var(--dl-color-secondary-400);
   }
-  .header-container4 {
+  .header-container4, .header-container42 {
     display: none;
   }
   .header-container5 {
