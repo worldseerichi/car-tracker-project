@@ -34,6 +34,7 @@ export default createStore({
             start_date: null,
             end_date: null,
             randomFilterBoolean: false,
+            resetCheck: false
         }
     },
     mutations:{
@@ -96,6 +97,7 @@ export default createStore({
             state.filter.start_date = yesterday.toISOString().slice(0, 16);
             state.filter.end_date = now.toISOString().slice(0, 16);
             state.filter.randomFilterBoolean = !state.filter.randomFilterBoolean;
+            state.filter.resetCheck = !state.filter.resetCheck;
         }
 
     },

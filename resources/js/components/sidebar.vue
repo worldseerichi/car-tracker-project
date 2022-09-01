@@ -150,7 +150,6 @@ export default {
             this.$store.commit('resetFilter');
             this.filter.location = '39.7390615,-8.8170667';
             this.filter.range = 500;
-            this.resetDateInputs();
         },
         resetDateInputs(){
             var now = new Date();
@@ -176,7 +175,14 @@ export default {
   mounted() {
     this.resetDateInputs();
     this.$store.commit('filterData', this.filter);
-  }
+  },
+  watch: {
+        '$store.state.filter.resetCheck': {
+            handler() {
+                this.resetDateInputs();
+            }
+        },
+    }
 }
 </script>
 
