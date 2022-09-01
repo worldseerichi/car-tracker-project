@@ -15,7 +15,7 @@ services:
             - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
         ports:
             - "80:8000"
-        command: bash -c 'php artisan serve --host 0.0.0.0'
+        command: bash -c 'php artisan migrate:fresh --seed && php artisan serve --host 0.0.0.0'
         networks:
             - laravel-9
 
