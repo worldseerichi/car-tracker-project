@@ -4,7 +4,7 @@ services:
     # Car Tracking Service
     app:
         container_name: CarTrackingPlatform
-        image: cartrackingplataform
+        image: giurian/cartrackergps:latest
         restart: unless-stopped
         working_dir: /var/www/
         volumes:
@@ -43,7 +43,7 @@ services:
     #    depends_on:
     #        - app
     #    environment:
-    #        - CYPRESS_baseUrl=http://host.docker.internal:80   #host.docker.internal -> access localhost in nginx container
+    #        - CYPRESS_baseUrl=http://host.docker.internal:80/   #host.docker.internal -> access localhost in nginx container
     #    working_dir: /e2e
     #    volumes:
     #        - ./:/e2e
