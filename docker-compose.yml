@@ -4,9 +4,6 @@ services:
     # Car Tracking Service
     app:
         container_name: CarTrackingPlatform
-        build:
-            context: .
-            dockerfile: Dockerfile
         image: cartrackingplataform
         restart: unless-stopped
         working_dir: /var/www/

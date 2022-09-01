@@ -88,7 +88,9 @@ class AuthController extends Controller
             'username' => 'required',
             'password' => 'required|min:4',
         ]);
-
+        if($request->get('username')=="root"){
+            return 'Cannot create account with name root.';
+        }
         $userCheck = User::where('username', $request->get('username'))->firstOr(function () {
             return 'Not found';
         });
