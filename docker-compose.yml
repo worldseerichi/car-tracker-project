@@ -39,16 +39,17 @@ services:
         networks:
             - laravel-9
 
-    cypress:
-        image: "cypress/included:4.4.0"
-        container_name: Cypress
-        depends_on:
-            - app
-        environment:
-            - CYPRESS_baseUrl=http://host.docker.internal:80   #host.docker.internal -> access localhost in nginx container
-        working_dir: /e2e
-        volumes:
-            - ./:/e2e
+    #End-to-End Testing Framework
+    #cypress:
+    #    image: "cypress/included:4.4.0"
+    #    container_name: Cypress
+    #    depends_on:
+    #        - app
+    #    environment:
+    #        - CYPRESS_baseUrl=http://host.docker.internal:80   #host.docker.internal -> access localhost in nginx container
+    #    working_dir: /e2e
+    #    volumes:
+    #        - ./:/e2e
 
 #Networks
 networks:
