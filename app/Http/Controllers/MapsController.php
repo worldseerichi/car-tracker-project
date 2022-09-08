@@ -347,15 +347,19 @@ class MapsController extends Controller
         $request->validate([
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
+            'bearing' => 'required|numeric',
+            'velocity' => 'required|numeric',
             'device_id' => 'required|numeric'
         ]);
         Device::where('id', $request->get('device_id'))->firstOr(function () {
             return 'User deactivated or Device not found';
         });
-        $data = $request->only('latitude', 'longitude','device_id');
+        $data = $request->only('latitude', 'longitude', 'bearing', 'velocity', 'device_id');
         TrackingData::create([
             'latitude'      => $data['latitude'],
             'longitude'     => $data['longitude'],
+            'bearing'       => $data['bearing'],
+            'velocity'      => $data['velocity'],
             'device_id'     => $data['device_id']
         ]);
         return 'Data added';

@@ -64,7 +64,7 @@ var otherUsersIcon = {
     fillColor: 'black',
     fillOpacity: 1,
     scale: .75,
-    anchor: new google.maps.Point(25,25),
+    anchor: new google.maps.Point(28,28),
     rotation: 55
 }
 var mainIcon = {
@@ -77,7 +77,7 @@ var mainIcon = {
     fillColor: 'red',
     fillOpacity: 1,
     scale: .75,
-    anchor: new google.maps.Point(25,25),
+    anchor: new google.maps.Point(28,28),
     rotation: 55
 }
 var startPosIcon = {
@@ -96,7 +96,7 @@ var startPosIcon = {
     fillColor: 'blue',
     fillOpacity: 1,
     scale: .006,
-    anchor: new google.maps.Point(25,25),
+    anchor: new google.maps.Point(38,38),
     rotation: 180
 }
 
